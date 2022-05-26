@@ -1,4 +1,3 @@
-from async_timeout import PY_37
 import numpy as np
 from scipy import integrate
 import scipy.integrate  as  ode
@@ -55,7 +54,7 @@ def system(t, v, r, beta, sgamma, cgamma, K, p, q,  d):
         eqs.append(eqI22[i])
 
 
-    return eqs #[eqS[0], eqS[1], eqI1[0], eqI1[1], eqI2[0], eqI2[1], eqI11[0], eqI11[1], eqI12[0], eqI12[1], eqI21[0], eqI21[1], eqI22[0], eqI22[1]]
+    return eqs 
 
 
 def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
