@@ -159,8 +159,8 @@ def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon):
     measures['z1'] = z1
 
     #Implement invasion fitness lambda_i_j for each patch
-    #These are still vectors (one entry for each patch)
-    Theta1 = (2*beta*Sstar*T^2)/detP
+    #These are still vectors (one entry for each patch)     #This bit is wrong: Need to implement the neutral system parameters
+    Theta1 = (2*beta*Sstar*T**2)/detP
     Theta2 = sgamma*I*(I + T)/detP
     Theta3 = sgamma*T*D/detP
     Theta4 = 2*m*T*D/detP
@@ -181,15 +181,17 @@ def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon):
     return measures
 
 
+
 ds = np.linspace(0, 500, 100)
 zs1 = []
 zs2 = []
 for d in ds:
-    s = analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d)['z1']
+    s = analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['z1']
     zs1.append(s[0])
     zs2.append(s[1])
 
-
+test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
+print(test[0] - test[1])
 
 animate(ds, zs1, zs2)
 
