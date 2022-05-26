@@ -129,10 +129,12 @@ print(z2)
 print(z2 + z1)
 
 
-def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d):
+def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon):
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
+    m = r + sgamma
     measures = dict()
     solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
+    Sstar = np.array([solution.y[0][-1], solution.y[1][-1]])
     I1star =  np.array([solution.y[2][-1], solution.y[3][-1]])
     I2star =  np.array([solution.y[4][-1], solution.y[5][-1]])
     I11star = np.array([solution.y[6][-1], solution.y[7][-1]])
@@ -151,14 +153,30 @@ def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d):
     measures['T'] = T
     measures['I'] = I
     measures['D'] = D
+    detP = np.array([np.linalg.det([[2*T[0], I[0]], [D[0], T[0]]]), np.linalg.det([[2*T[1], I[1]], [D[1], T[1]]])])
 
     z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
     measures['z1'] = z1
 
     #Implement invasion fitness lambda_i_j for each patch
+    #These are still vectors (one entry for each patch)
+    Theta1 = (2*beta*Sstar*T^2)/detP
+    Theta2 = sgamma*I*(I + T)/detP
+    Theta3 = sgamma*T*D/detP
+    Theta4 = 2*m*T*D/detP
+    Theta5 = beta*T*I*D/detP
+    Theta = Theta1 + Theta2 + Theta3 + Theta4 + Theta5
+    theta1 = Theta1/Theta
+    theta2 = Theta2/Theta
+    theta3 = Theta3/Theta
+    theta4 = Theta4/Theta
+    theta5 = Theta5/Theta
+    mu = I/D
 
-
-
+    lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
+    lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
+    measures['lambda1_2'] = lambda1_2
+    measures['lambda2_1'] = lambda2_1
 
     return measures
 
