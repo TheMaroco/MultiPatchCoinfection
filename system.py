@@ -1,4 +1,3 @@
-from msilib.schema import Class
 import numpy as np
 from scipy import integrate
 import scipy.integrate  as  ode
@@ -127,3 +126,56 @@ print(z1)
 z2 = np.array([(I2star + I22star + 0.5*I21star + 0.5*I12star)[0]/I[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/I[1]])
 print(z2)
 print(z2 + z1)
+
+
+def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d):
+    """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
+    measures = dict()
+    solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
+    I1star =  np.array([solution.y[2][-1], solution.y[3][-1]])
+    I2star =  np.array([solution.y[4][-1], solution.y[5][-1]])
+    I11star = np.array([solution.y[6][-1], solution.y[7][-1]])
+    I12star = np.array([solution.y[8][-1], solution.y[9][-1]])
+    I21star = np.array([solution.y[10][-1], solution.y[11][-1]])
+    I22star = np.array([solution.y[12][-1], solution.y[13][-1]])
+    measures['I1*'] = I1star
+    measures['I2*'] = I2star
+    measures['I11*'] = I11star
+    measures['I12*'] = I12star
+    measures['I21*'] = I21star
+    measures['I22*'] = I22star
+    I = I1star + I2star
+    T = I1star + I2star + I11star + I12star + I21star + I22star
+    D = T - I
+    measures['T'] = T
+    measures['I'] = I
+    measures['D'] = D
+
+    z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
+    measures['z1'] = z1
+
+    #Implement invasion fitness lambda_i_j for each patch
+
+
+
+
+    return measures
+
+
+
+zs1 = []
+zs2 = []
+for d in np.linspace(0, 100, 100):
+    s = analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d)['z1']
+    zs1.append(s[0])
+    zs2.append(s[1])
+
+
+
+
+plt.plot(np.linspace(0, 5, 100), zs1, label = 'z1 of first patch')
+plt.plot(np.linspace(0, 5, 100), zs2, label = 'z1 of second patch')
+plt.ylim([0, 1])
+
+plt.legend()
+plt.show()
