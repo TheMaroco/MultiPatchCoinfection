@@ -2,6 +2,7 @@ import numpy as np
 from scipy import integrate
 import scipy.integrate  as  ode
 import matplotlib.pyplot  as  plt
+from animator import animate
 
 M = np.array([[-1, 1], [1, -1]])
 
@@ -162,20 +163,24 @@ def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d):
     return measures
 
 
-
+ds = np.linspace(0, 500, 100)
 zs1 = []
 zs2 = []
-for d in np.linspace(0, 100, 100):
+for d in ds:
     s = analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d)['z1']
     zs1.append(s[0])
     zs2.append(s[1])
 
 
 
+animate(ds, zs1, zs2)
 
-plt.plot(np.linspace(0, 5, 100), zs1, label = 'z1 of first patch')
-plt.plot(np.linspace(0, 5, 100), zs2, label = 'z1 of second patch')
-plt.ylim([0, 1])
+plt.show()
+
+
+plt.plot(ds, zs1, label = 'z1 of first patch')
+plt.plot(ds, zs2, label = 'z1 of second patch')
+
 
 plt.legend()
 plt.show()
