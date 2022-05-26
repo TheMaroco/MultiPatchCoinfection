@@ -1,3 +1,4 @@
+from msilib.schema import Class
 import numpy as np
 from scipy import integrate
 import scipy.integrate  as  ode
