@@ -16,12 +16,6 @@ def animate(parameter, data1, data2, axis_labels = []):
 
     
     def animation_function(i):
-        # x.append(parameter[i])
-        # y.append(data[i])
-        
-        # line1.set_xdata(x)
-        # line1.set_ydata(y)
-
         ax.plot(parameter[:i], data1[:i], color = 'red')
         ax.plot(parameter[:i], data2[:i], color = 'blue')
 

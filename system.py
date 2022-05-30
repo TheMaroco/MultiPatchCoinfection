@@ -63,7 +63,7 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
 
 
 #Two patch parameters
-epsilon = 0.0001
+epsilon = 1
 t = np.linspace(0, 400, 54)
 v0 = [70, 70, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
 N = sum(v0)
@@ -190,7 +190,7 @@ ds = np.linspace(0, 500, 100)
 zs1 = []
 zs2 = []
 for d in ds:
-    s = analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['z1']
+    s = analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon)['z1']
     zs1.append(s[0])
     zs2.append(s[1])
 
