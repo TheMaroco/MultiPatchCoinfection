@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
   
-def animate(parameter, data1, data2):
+def animate(parameter, data1, data2, axis_labels = []):
     x = []
     y = []
     
@@ -31,7 +31,8 @@ def animate(parameter, data1, data2):
                             func = animation_function,
                             frames = range(len(parameter)), 
                             interval = 10, repeat = False)
-    
+    plt.xlabel(axis_labels[0])
+    plt.ylabel(axis_labels[1])
     plt.show()
 
 

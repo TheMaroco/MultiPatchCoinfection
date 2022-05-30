@@ -63,17 +63,21 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
 
 
 #Two patch parameters
+epsilon = 0.0001
 t = np.linspace(0, 400, 54)
 v0 = [70, 70, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
 N = sum(v0)
-r =np.array([1, 1.2])
-beta = [np.array([1.1, 1.2]), np.array([1.2, 1.3])]
-sgamma = [np.array([0.8, 0.7]), np.array([0.7, 0.6])]
-cgamma = [np.array([1,0.6]), np.array([1, 0.4]), np.array([1.2, 0.6]), np.array([1.4, 1.2])]
-K = [np.array([1,1.2]), np.array([1.1, 0.8]), np.array([1.4, 1.6]), np.array([1.4, 1.3])]
-p = [np.array([1,1]), np.array([0.7, 0.8]), np.array([0.3, 0.2]), np.array([1, 1])]
-q = [np.array([1,1]), np.array([0.7, 0.8]), np.array([0.3, 0.2]), np.array([1, 1])]
-d = 1.2
+r =np.array([1.2, 1.2])
+neutralbeta = 1
+neutralgamma = 1.3
+neutralk = 1
+beta = [neutralbeta*np.array([1 + epsilon*1.6, 1 + epsilon*1.8]), neutralbeta*np.array([1+epsilon*2, 1 + epsilon*1.9])]
+sgamma = [neutralgamma*np.array([1 + epsilon*0.8, 1 + epsilon*0.7]), neutralgamma*np.array([1 + epsilon*0.7, 1 + epsilon*0.6])]
+cgamma = [neutralgamma*np.array([1 + epsilon*0.8,1 + epsilon*0.6]), neutralgamma*np.array([1+ epsilon*0.5, 1 + epsilon*1.4]), neutralgamma*np.array([1 + epsilon*1.2, 1 + epsilon*0.6]), neutralgamma*np.array([1 + epsilon*1.4, 1 + epsilon*1.2])]
+K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + epsilon*1.1, 1 + epsilon*0.8]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.6]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.3])]
+p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
+q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
+d = 0.0001
 
 #Three Patch Parameters
 v03 = [70, 70, 70, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -85,7 +89,7 @@ cgamma3 = [np.array([1,0.6, 1.2]), np.array([1, 0.4, 1.5]), np.array([1.2, 0.6, 
 K3 = [np.array([1,1.2, 1]), np.array([1.1, 0.8, 0.9]), np.array([1.4, 1.6, 1.2]), np.array([1.4, 1.3, 1.2])]
 p3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
 q3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
-d = 1.2
+
 
 
 solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
@@ -160,23 +164,23 @@ def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon):
 
     #Implement invasion fitness lambda_i_j for each patch
     #These are still vectors (one entry for each patch)     #This bit is wrong: Need to implement the neutral system parameters
-    Theta1 = (2*beta*Sstar*T**2)/detP
-    Theta2 = sgamma*I*(I + T)/detP
-    Theta3 = sgamma*T*D/detP
-    Theta4 = 2*m*T*D/detP
-    Theta5 = beta*T*I*D/detP
-    Theta = Theta1 + Theta2 + Theta3 + Theta4 + Theta5
-    theta1 = Theta1/Theta
-    theta2 = Theta2/Theta
-    theta3 = Theta3/Theta
-    theta4 = Theta4/Theta
-    theta5 = Theta5/Theta
-    mu = I/D
+    # Theta1 = (2*beta*Sstar*T**2)/detP
+    # Theta2 = sgamma*I*(I + T)/detP
+    # Theta3 = sgamma*T*D/detP
+    # Theta4 = 2*m*T*D/detP
+    # Theta5 = beta*T*I*D/detP
+    # Theta = Theta1 + Theta2 + Theta3 + Theta4 + Theta5
+    # theta1 = Theta1/Theta
+    # theta2 = Theta2/Theta
+    # theta3 = Theta3/Theta
+    # theta4 = Theta4/Theta
+    # theta5 = Theta5/Theta
+    # mu = I/D
 
-    lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
-    lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
-    measures['lambda1_2'] = lambda1_2
-    measures['lambda2_1'] = lambda2_1
+    # lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
+    # lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
+    # measures['lambda1_2'] = lambda1_2
+    # measures['lambda2_1'] = lambda2_1
 
     return measures
 
@@ -190,17 +194,19 @@ for d in ds:
     zs1.append(s[0])
     zs2.append(s[1])
 
-test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
-print(test[0] - test[1])
+# test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
+# print(test[0] - test[1])
 
-animate(ds, zs1, zs2)
+animate(ds, zs1, zs2, ['d', 'z1'])
 
 plt.show()
 
 
 plt.plot(ds, zs1, label = 'z1 of first patch')
 plt.plot(ds, zs2, label = 'z1 of second patch')
-
+plt.title('Variation of z as function of diffusion')
+plt.xlabel('d')
+plt.ylabel('z1')
 
 plt.legend()
 plt.show()
