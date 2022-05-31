@@ -63,7 +63,7 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
 
 
 #Two patch parameters
-epsilon = 1
+epsilon = 12
 t = np.linspace(0, 400, 54)
 v0 = [70, 70, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
 N = sum(v0)
@@ -77,7 +77,7 @@ cgamma = [neutralgamma*np.array([1 + epsilon*0.8,1 + epsilon*0.6]), neutralgamma
 K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + epsilon*1.1, 1 + epsilon*0.8]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.6]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.3])]
 p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
 q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
-d = 0.0001
+d = 0.4
 
 #Three Patch Parameters
 v03 = [70, 70, 70, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]

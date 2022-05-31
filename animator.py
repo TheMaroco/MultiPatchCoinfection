@@ -18,6 +18,7 @@ def animate(parameter, data1, data2, axis_labels = []):
     def animation_function(i):
         ax.plot(parameter[:i], data1[:i], color = 'red')
         ax.plot(parameter[:i], data2[:i], color = 'blue')
+        ax.plot(parameter[:i], (np.array(data1[:i])+np.array(data2[:i]))/2, color = 'orange')
 
         return ax
     
