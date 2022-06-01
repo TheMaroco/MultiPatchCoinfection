@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
   
-def animate(parameter, data1, data2, axis_labels = []):
+def animate(parameter, data1, data2, axis_labels = [], plt_labels = []):
     x = []
     y = []
     
@@ -16,9 +16,9 @@ def animate(parameter, data1, data2, axis_labels = []):
 
     
     def animation_function(i):
-        ax.plot(parameter[:i], data1[:i], color = 'red')
-        ax.plot(parameter[:i], data2[:i], color = 'blue')
-        ax.plot(parameter[:i], (np.array(data1[:i])+np.array(data2[:i]))/2, color = 'orange')
+        ax.plot(parameter[:i], data1[:i], color = 'red', label = plt_labels[0])
+        ax.plot(parameter[:i], data2[:i], color = 'blue',  label = plt_labels[1])
+        ax.plot(parameter[:i], (np.array(data1[:i])+np.array(data2[:i]))/2, color = 'orange', label = 'Average value')
 
         return ax
     
@@ -28,6 +28,7 @@ def animate(parameter, data1, data2, axis_labels = []):
                             interval = 10, repeat = False)
     plt.xlabel(axis_labels[0])
     plt.ylabel(axis_labels[1])
+    plt.legend()
     plt.show()
 
 

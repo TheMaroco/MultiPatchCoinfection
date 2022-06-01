@@ -6,6 +6,15 @@ from animator import animate
 
 M = np.array([[-1, 1], [1, -1]])
 
+def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
+    """Function for the replicator equation using the summarized parameters."""
+
+    #lambda1_2 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
+    #lambda2_1 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
+    
+
+    return Theta*lambda1_2*z*(np.ones(2)-z) - z*(np.ones(1)-z)*(lambda1_2 + lambda2_1) + weight*(z[1] - z[0]) + np.mean(z)
+
 def system(t, v, r, beta, sgamma, cgamma, K, p, q,  d):
     """Function to return the system of differential equations for two patch, 2-strain system.
     t: time variable
@@ -63,8 +72,10 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
 
 
 #Two patch parameters
-epsilon = 12
+epsilon = 0.1
 t = np.linspace(0, 400, 54)
+tau = t*epsilon
+print(tau)
 v0 = [70, 70, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
 N = sum(v0)
 r =np.array([1.2, 1.2])
@@ -95,49 +106,52 @@ q3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), 
 solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
 
 
-labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
-for i in range(12):
-    plt.plot(t, solution.y[i][:len(t)], label = labels[i])
+# labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
+# for i in range(12):
+#     plt.plot(t, solution.y[i][:len(t)], label = labels[i])
 
-plt.legend()
-plt.show()
-
-
-fig, ax = plt.subplots(1, 2, figsize = (10,4))
-fig.subplots_adjust(wspace = 0.5)
-order = np.array(['A', 'B'])
-for i in range(7):
-    ax[0].plot(t, solution.y[2*i][:len(t)], label = labels[2*i])
-    ax[1].plot(t, solution.y[2*i + 1][:len(t)], label = labels[2*i+1])
+# plt.legend()
+# plt.show()
 
 
-ax[0].set_title('Patch 1 Dynamics', fontsize = 16)
-ax[1].set_title('Patch 2 Dynamics', fontsize = 16)
-plt.legend()
-plt.show()
+# fig, ax = plt.subplots(1, 2, figsize = (10,4))
+# fig.subplots_adjust(wspace = 0.5)
+# order = np.array(['A', 'B'])
+# for i in range(7):
+#     ax[0].plot(t, solution.y[2*i][:len(t)], label = labels[2*i])
+#     ax[1].plot(t, solution.y[2*i + 1][:len(t)], label = labels[2*i+1])
+
+
+# ax[0].set_title('Patch 1 Dynamics', fontsize = 16)
+# ax[1].set_title('Patch 2 Dynamics', fontsize = 16)
+# plt.legend()
+# plt.show()
 
 
 #Strain Frequencies
-I1star =  np.array([solution.y[2][-1], solution.y[3][-1]])
-I2star =  np.array([solution.y[4][-1], solution.y[5][-1]])
-I11star = np.array([solution.y[6][-1], solution.y[7][-1]])
-I12star = np.array([solution.y[8][-1], solution.y[9][-1]])
-I21star = np.array([solution.y[10][-1], solution.y[11][-1]])
-I22star = np.array([solution.y[12][-1], solution.y[13][-1]])
-I = I1star + I2star + I11star + I12star + I21star + I22star
+# I1star =  np.array([solution.y[2][-1], solution.y[3][-1]])
+# I2star =  np.array([solution.y[4][-1], solution.y[5][-1]])
+# I11star = np.array([solution.y[6][-1], solution.y[7][-1]])
+# I12star = np.array([solution.y[8][-1], solution.y[9][-1]])
+# I21star = np.array([solution.y[10][-1], solution.y[11][-1]])
+# I22star = np.array([solution.y[12][-1], solution.y[13][-1]])
+# I = I1star + I2star + I11star + I12star + I21star + I22star
 
-z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/I[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/I[1]])
-print(z1)
-z2 = np.array([(I2star + I22star + 0.5*I21star + 0.5*I12star)[0]/I[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/I[1]])
-print(z2)
-print(z2 + z1)
+# z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/I[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/I[1]])
+# print(z1)
+# z2 = np.array([(I2star + I22star + 0.5*I21star + 0.5*I12star)[0]/I[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/I[1]])
+# print(z2)
+# print(z2 + z1)
 
 
-def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon):
+def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk,  K, p, q, d, epsilon):
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
-    m = r + sgamma
+    m = r + neutralgamma
     measures = dict()
+
     solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
+    measures['solution'] = solution
+
     Sstar = np.array([solution.y[0][-1], solution.y[1][-1]])
     I1star =  np.array([solution.y[2][-1], solution.y[3][-1]])
     I2star =  np.array([solution.y[4][-1], solution.y[5][-1]])
@@ -151,53 +165,73 @@ def analysis(system ,v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon):
     measures['I12*'] = I12star
     measures['I21*'] = I21star
     measures['I22*'] = I22star
+    T =I1star + I2star + I11star + I12star + I21star + I22star
     I = I1star + I2star
-    T = I1star + I2star + I11star + I12star + I21star + I22star
     D = T - I
     measures['T'] = T
     measures['I'] = I
     measures['D'] = D
     detP = np.array([np.linalg.det([[2*T[0], I[0]], [D[0], T[0]]]), np.linalg.det([[2*T[1], I[1]], [D[1], T[1]]])])
-
     z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
+    z2 = np.array([(I2star + I22star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
     measures['z1'] = z1
+    measures['z2'] = z2
 
     #Implement invasion fitness lambda_i_j for each patch
-    #These are still vectors (one entry for each patch)     #This bit is wrong: Need to implement the neutral system parameters
-    # Theta1 = (2*beta*Sstar*T**2)/detP
-    # Theta2 = sgamma*I*(I + T)/detP
-    # Theta3 = sgamma*T*D/detP
-    # Theta4 = 2*m*T*D/detP
-    # Theta5 = beta*T*I*D/detP
-    # Theta = Theta1 + Theta2 + Theta3 + Theta4 + Theta5
-    # theta1 = Theta1/Theta
-    # theta2 = Theta2/Theta
-    # theta3 = Theta3/Theta
-    # theta4 = Theta4/Theta
-    # theta5 = Theta5/Theta
-    # mu = I/D
+    #These are still vectors (one entry for each patch)     
+    Theta1 = (2*neutralbeta*Sstar*T**2)/detP
+    Theta2 = neutralgamma*I*(I + T)/detP
+    Theta3 = neutralgamma*T*D/detP
+    Theta4 = 2*m*T*D/detP
+    Theta5 = neutralbeta*T*I*D/detP
+    Theta = Theta1 + Theta2 + Theta3 + Theta4 + Theta5
+    theta1 = Theta1/Theta
+    theta2 = Theta2/Theta
+    theta3 = Theta3/Theta
+    theta4 = Theta4/Theta
+    theta5 = Theta5/Theta
+    mu = I/D
 
-    # lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
-    # lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
-    # measures['lambda1_2'] = lambda1_2
-    # measures['lambda2_1'] = lambda2_1
+    lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
+    lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
+    measures['lambda1_2'] = lambda1_2
+    measures['lambda2_1'] = lambda2_1
+
+    measures['deltab'] = (beta[1] - beta[0])/(epsilon*neutralbeta)
+    measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
+
+    weight = 1/detP*(-D*(I[1]-I[0]) + 2*T*(T[1]- T[0]))
+    z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
+    measures['replicator_solution'] = integrate.solve_ivp(replicator, tau, z1, args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
+    #measures['replicator_solution'] = integrate.odeint(replicator, z0, t*epsilon, args = (Theta, lambda1_2, lambda2_1, weight), full_output=False).T
+
+    
 
     return measures
 
 
+sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, 0, epsilon)
+print(len(sol['replicator_solution'][0]))
+plt.plot(tau[:len(sol['replicator_solution'][0])], sol['replicator_solution'][0])
+plt.plot(tau[: len(sol['replicator_solution'][0])], sol['replicator_solution'][1])
+plt.show()
 
-ds = np.linspace(0, 500, 100)
+ds = np.linspace(0, 5*epsilon, 30)
 zs1 = []
 zs2 = []
+p1lambda1_2s = []
+p1lambda2_1s = []
 for d in ds:
-    s = analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, epsilon)['z1']
-    zs1.append(s[0])
-    zs2.append(s[1])
+    s = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
+    zs1.append(s['z1'][0])
+    zs2.append(s['z1'][1])
+    p1lambda1_2s.append(s['lambda1_2'])
+    p1lambda2_1s.append(s['lambda2_1'])
 
 # test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
 # print(test[0] - test[1])
 
-animate(ds, zs1, zs2, ['d', 'z1'])
+animate(ds, zs1, zs2, ['d', 'z1'], ['z1 of first patch', 'z1 of second patch'])
 
 plt.show()
 
@@ -210,3 +244,4 @@ plt.ylabel('z1')
 
 plt.legend()
 plt.show()
+
