@@ -8,12 +8,26 @@ M = np.array([[-1, 1], [1, -1]])
 
 def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
     """Function for the replicator equation using the summarized parameters."""
-
     #lambda1_2 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
     #lambda2_1 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
-    
+    Z = np.zeros((2,2))                 #This is going to be a matrix where collumns are patches and rows are strains.
+    Z[0, 0] = z[0]
+    Z[0, 1] = z[1]
+    Z[1, 0] = z[2]
+    Z[1, 1] = z[3]
+    Z[0, 1] = 1 - Z[0, 0]
+    Z[1,0] = 1 - Z[1,1]
+    Lambdas = [np.array([[0, lambda1_2[0]],[lambda2_1[0], 0]]), np.array([[0, lambda1_2[1]],[lambda2_1[1], 0]])]
 
-    return Theta*lambda1_2*z*(np.ones(2)-z) - z*(np.ones(1)-z)*(lambda1_2 + lambda2_1) + weight*(z[1] - z[0]) + np.mean(z)
+    eqlist = []
+    #Order of equations is: z11, z12, z21, z22. So i is refering to the patch and j is refering to the strain.
+    for j in range(2):
+        for i in range(2):
+
+            eqlist.append(Theta[i]*Z[i, j]*((Lambdas[i]@Z[i,:])[j] - np.transpose(Z[i, :])@Lambdas[i]@Z[i, :]) + weight[i]*(Z[1, j] - Z[0, j])/(d*dt))
+
+
+    return eqlist
 
 def system(t, v, r, beta, sgamma, cgamma, K, p, q,  d):
     """Function to return the system of differential equations for two patch, 2-strain system.
@@ -74,6 +88,7 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
 #Two patch parameters
 epsilon = 0.1
 t = np.linspace(0, 400, 100)
+dt = t[1] - t[0]
 tau = t*epsilon
 v0 = [70, 70, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
 N = sum(v0)
@@ -87,7 +102,7 @@ cgamma = [neutralgamma*np.array([1 + epsilon*0.8,1 + epsilon*0.6]), neutralgamma
 K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + epsilon*1.1, 1 + epsilon*0.8]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.6]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.3])]
 p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
 q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
-d = 0.4
+d = epsilon
 
 #Three Patch Parameters
 v03 = [70, 70, 70, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -199,9 +214,10 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
     measures['deltab'] = (beta[1] - beta[0])/(epsilon*neutralbeta)
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
 
+
     weight = 1/detP*(-D*(I[1]-I[0]) + 2*T*(T[1]- T[0]))
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
-    measures['replicator_solution'] = integrate.solve_ivp(replicator, tau, z1, args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
+    measures['replicator_solution'] = integrate.solve_ivp(replicator, tau, [z1[0], 1 - z1[0], z1[1], 1 - z1[1]], args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
 
 
     
@@ -211,9 +227,12 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
 
 sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, 0, epsilon)
 
-plt.plot(tau[:len(sol['replicator_solution'][0])], sol['replicator_solution'][0], label = 'z1 for patch 1')
-plt.plot(tau[: len(sol['replicator_solution'][0])], sol['replicator_solution'][1], label = 'z1 for patch 2')
-plt.legend()
+fig, ax = plt.subplots(1, 2, figsize = (10,4))
+fig.subplots_adjust(wspace = 0.5)
+order = np.array(['A', 'B'])
+ax[0].stackplot(tau[:len(sol['replicator_solution'][0])], sol['replicator_solution'][:2])
+ax[1].stackplot(tau[:len(sol['replicator_solution'][0])], sol['replicator_solution'][2:])
+
 plt.show()
 
 ds = np.linspace(0, 5*epsilon, 30)
@@ -236,8 +255,8 @@ animate(ds, zs1, zs2, ['d', 'z1'], ['z1 of first patch', 'z1 of second patch'])
 plt.show()
 
 
-plt.plot(ds, zs1, label = 'z1 of first patch')
-plt.plot(ds, zs2, label = 'z1 of second patch')
+plt.stackplot(ds, zs1, label = 'z1 of first patch')
+#plt.plot(ds, zs2, label = 'z1 of second patch')
 plt.title('Variation of z as function of diffusion')
 plt.xlabel('d')
 plt.ylabel('z1')
