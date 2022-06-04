@@ -233,8 +233,8 @@ p1lambda2_1s = []
 for d in ds:
     s = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
     sols.append(s)
-    zs1.append(s['z1'][0])
-    zs2.append(s['z1'][1])
+    zs1.append(s['replicator_solution'][0][-1])  #Now looking at solution from the replicator
+    zs2.append(s['replicator_solution'][1][-1])
     p1lambda1_2s.append(s['lambda1_2'])
     p1lambda2_1s.append(s['lambda2_1'])
 
