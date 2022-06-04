@@ -15,16 +15,17 @@ def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
     Z[0, 1] = z[1]
     Z[1, 0] = z[2]
     Z[1, 1] = z[3]
-    Z[0, 1] = 1 - Z[0, 0]
-    Z[1,0] = 1 - Z[1,1]
+    Z[1, 0] = 1 - Z[0, 0]
+    
+    Z[0, 1] = 1 - Z[1, 1]
     Lambdas = [np.array([[0, lambda1_2[0]],[lambda2_1[0], 0]]), np.array([[0, lambda1_2[1]],[lambda2_1[1], 0]])]
 
-    eqlist = []
-    #Order of equations is: z11, z12, z21, z22. So i is refering to the patch and j is refering to the strain.
-    for j in range(2):
-        for i in range(2):
 
-            eqlist.append(Theta[i]*Z[i, j]*((Lambdas[i]@Z[i,:])[j] - np.transpose(Z[i, :])@Lambdas[i]@Z[i, :]) + weight[i]*(Z[1, j] - Z[0, j])/(d*dt))
+    eqlist = []
+    #Order of equations is: z11, z12, z21, z22. So i is refering to the strain and j is refering to the patch.
+    for i in range(2):
+        for j in range(2):
+            eqlist.append(Theta[j]*Z[i, j]*((Lambdas[j]@Z[:,j])[i] - np.transpose(Z[:, j])@Lambdas[j]@Z[:, j]) + (weight[j]-1)*(Z[i, (j+1)%2] - Z[i, j]))
 
 
     return eqlist
@@ -117,46 +118,6 @@ q3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), 
 
 
 
-solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
-
-
-labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
-for i in range(12):
-    plt.plot(t, solution.y[i][:len(t)], label = labels[i])
-
-plt.legend()
-plt.show()
-
-
-fig, ax = plt.subplots(1, 2, figsize = (10,4))
-fig.subplots_adjust(wspace = 0.5)
-order = np.array(['A', 'B'])
-for i in range(7):
-    ax[0].plot(t, solution.y[2*i][:len(t)], label = labels[2*i])
-    ax[1].plot(t, solution.y[2*i + 1][:len(t)], label = labels[2*i+1])
-
-
-ax[0].set_title('Patch 1 Dynamics', fontsize = 16)
-ax[1].set_title('Patch 2 Dynamics', fontsize = 16)
-plt.legend()
-plt.show()
-
-
-#Strain Frequencies
-I1star =  np.array([solution.y[2][-1], solution.y[3][-1]])
-I2star =  np.array([solution.y[4][-1], solution.y[5][-1]])
-I11star = np.array([solution.y[6][-1], solution.y[7][-1]])
-I12star = np.array([solution.y[8][-1], solution.y[9][-1]])
-I21star = np.array([solution.y[10][-1], solution.y[11][-1]])
-I22star = np.array([solution.y[12][-1], solution.y[13][-1]])
-I = I1star + I2star + I11star + I12star + I21star + I22star
-
-z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/I[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/I[1]])
-print(z1)
-z2 = np.array([(I2star + I22star + 0.5*I21star + 0.5*I12star)[0]/I[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/I[1]])
-print(z2)
-print(z2 + z1)
-
 
 def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk,  K, p, q, d, epsilon):
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
@@ -215,9 +176,10 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
 
 
-    weight = 1/detP*(-D*(I[1]-I[0]) + 2*T*(T[1]- T[0]))
+    weight = np.array([1/detP[0]*(-D[0]*(I[1]-I[0]) + 2*T[0]*(T[1]- T[0])) , 1/detP[1]*(-D[1]*(I[0]-I[1]) + 2*T[1]*(T[0]- T[1])) ])
+    measures['weight'] = weight
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
-    measures['replicator_solution'] = integrate.solve_ivp(replicator, tau, [z1[0], 1 - z1[0], z1[1], 1 - z1[1]], args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
+    measures['replicator_solution'] = integrate.solve_ivp(replicator, tau, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
 
 
     
@@ -225,13 +187,39 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
     return measures
 
 
-sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, 0, epsilon)
 
-fig, ax = plt.subplots(1, 2, figsize = (10,4))
-fig.subplots_adjust(wspace = 0.5)
-order = np.array(['A', 'B'])
-ax[0].stackplot(tau[:len(sol['replicator_solution'][0])], sol['replicator_solution'][:2])
-ax[1].stackplot(tau[:len(sol['replicator_solution'][0])], sol['replicator_solution'][2:])
+
+sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, epsilon, epsilon)
+solution = sol['solution']
+
+labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
+for i in range(12):
+    plt.plot(t, solution.y[i][:len(t)], label = labels[i])
+
+plt.legend()
+plt.show()
+
+
+fig, ax = plt.subplots(2, 2, figsize = (10, 10))
+#fig.subplots_adjust(wspace = 0.5)
+
+for i in range(7):
+    ax[0, 0].plot(t, solution.y[2*i][:len(t)], label = labels[2*i])
+    ax[0, 1].plot(t, solution.y[2*i + 1][:len(t)], label = labels[2*i+1])
+
+
+ax[1, 0].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][0], sol['replicator_solution'][2]], labels = ['Strain 1', 'Strain 2'])
+ax[1, 1].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][1], sol['replicator_solution'][3]], labels = ['Strain 1', 'Strain 2'])
+#Labeling everything
+for i in range(2):
+    ax[0, i].set(xlabel="t")
+    ax[1, i].set(xlabel=r"$\tau$")
+    for j in range(2):
+        ax[i, j].legend()
+ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
+ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
+
+
 
 plt.show()
 
