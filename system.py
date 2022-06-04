@@ -3,6 +3,7 @@ from scipy import integrate
 import scipy.integrate  as  ode
 import matplotlib.pyplot  as  plt
 from animator import animate
+from animation import Animate
 
 M = np.array([[-1, 1], [1, -1]])
 
@@ -188,53 +189,56 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
 
 
 
-
 sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, epsilon, epsilon)
-solution = sol['solution']
+def plot(sol):
+    """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
+    solution = sol['solution']
 
-labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
-for i in range(12):
-    plt.plot(t, solution.y[i][:len(t)], label = labels[i])
+    labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
+    
 
-plt.legend()
-plt.show()
+    fig, ax = plt.subplots(2, 2, figsize = (10, 10))
+    #fig.subplots_adjust(wspace = 0.5)
 
-
-fig, ax = plt.subplots(2, 2, figsize = (10, 10))
-#fig.subplots_adjust(wspace = 0.5)
-
-for i in range(7):
-    ax[0, 0].plot(t, solution.y[2*i][:len(t)], label = labels[2*i])
-    ax[0, 1].plot(t, solution.y[2*i + 1][:len(t)], label = labels[2*i+1])
+    for i in range(7):
+        ax[0, 0].plot(t, solution.y[2*i][:len(t)], label = labels[2*i])
+        ax[0, 1].plot(t, solution.y[2*i + 1][:len(t)], label = labels[2*i+1])
 
 
-ax[1, 0].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][0], sol['replicator_solution'][2]], labels = ['Strain 1', 'Strain 2'])
-ax[1, 1].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][1], sol['replicator_solution'][3]], labels = ['Strain 1', 'Strain 2'])
-#Labeling everything
-for i in range(2):
-    ax[0, i].set(xlabel="t")
-    ax[1, i].set(xlabel=r"$\tau$")
-    for j in range(2):
-        ax[i, j].legend()
-ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
-ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
+    ax[1, 0].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][0], sol['replicator_solution'][2]], labels = ['Strain 1', 'Strain 2'])
+    ax[1, 1].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][1], sol['replicator_solution'][3]], labels = ['Strain 1', 'Strain 2'])
+    #Labeling everything
+    for i in range(2):
+        ax[0, i].set(xlabel="t")
+        ax[1, i].set(xlabel=r"$\tau$")
+        for j in range(2):
+            ax[i, j].legend()
+    ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
+    ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
+
+    return ax
 
 
 
+
+plot(sol)
 plt.show()
 
 ds = np.linspace(0, 5*epsilon, 30)
+sols = []
 zs1 = []
 zs2 = []
 p1lambda1_2s = []
 p1lambda2_1s = []
 for d in ds:
     s = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
+    sols.append(s)
     zs1.append(s['z1'][0])
     zs2.append(s['z1'][1])
     p1lambda1_2s.append(s['lambda1_2'])
     p1lambda2_1s.append(s['lambda2_1'])
 
+Animate(t, tau, ds, sols)
 # test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
 # print(test[0] - test[1])
 
