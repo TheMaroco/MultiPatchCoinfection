@@ -84,7 +84,7 @@ def system(t, v, r, beta, sgamma, cgamma, K, p, q,  d):
 
 
 def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
-    return integrate.solve_ivp(system, t, v0, args = (r, beta, sgamma, cgamma, K, p, q, d), dense_output=True, method='BDF', rtol = 1e-13)
+    return integrate.solve_ivp(system, t, v0, args = (r, beta, sgamma, cgamma, K, p, q, d), dense_output=False, method='BDF', rtol = 1e-13)
 
 
 #Two patch parameters
@@ -92,10 +92,10 @@ epsilon = 0.1
 t = np.linspace(0, 400, 100)
 dt = t[1] - t[0]
 tau = t*epsilon
-v0 = [70, 70, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
+v0 = [100, 100, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
 N = sum(v0)
 r = np.array([1.2, 1.2])
-neutralbeta = 1
+neutralbeta = 5
 neutralgamma = 1.3
 neutralk = 1
 beta = [neutralbeta*np.array([1 + epsilon*1.6, 1 + epsilon*1.8]), neutralbeta*np.array([1+epsilon*2, 1 + epsilon*1.9])]
@@ -105,6 +105,7 @@ K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + e
 p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
 q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
 d = epsilon
+
 
 #Three Patch Parameters
 v03 = [70, 70, 70, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -124,7 +125,7 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
     m = r + neutralgamma
     measures = dict()
-
+    measures['R_0'] = neutralbeta/m
     solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
     measures['solution'] = solution
 
@@ -190,6 +191,9 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
 
 
 sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, epsilon, epsilon)
+print(sol['replicator_solution'][0][-1] + sol['replicator_solution'][1][-1] + sol['replicator_solution'][2][-1] + sol['replicator_solution'][3][-1])
+print(sol['z1'] + sol['z2'])
+print('R_0 is:', sol['R_0'])
 def plot(sol):
     """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
     solution = sol['solution']
@@ -201,12 +205,11 @@ def plot(sol):
     #fig.subplots_adjust(wspace = 0.5)
 
     for i in range(7):
-        ax[0, 0].plot(t, solution.y[2*i][:len(t)], label = labels[2*i])
-        ax[0, 1].plot(t, solution.y[2*i + 1][:len(t)], label = labels[2*i+1])
+        ax[0, 0].plot([t for t in range(len(solution.y[0]))], solution.y[2*i], label = labels[2*i])
+        ax[0, 1].plot([t for t in range(len(solution.y[0]))], solution.y[2*i + 1], label = labels[2*i+1])
 
-
-    ax[1, 0].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][0], sol['replicator_solution'][2]], labels = ['Strain 1', 'Strain 2'])
-    ax[1, 1].stackplot(tau[:len(sol['replicator_solution'][0])], [sol['replicator_solution'][1], sol['replicator_solution'][3]], labels = ['Strain 1', 'Strain 2'])
+    ax[1, 0].stackplot([tau for tau in range(len(sol['replicator_solution'][0]))], [sol['replicator_solution'][0], sol['replicator_solution'][2]], labels = ['Strain 1', 'Strain 2'])
+    ax[1, 1].stackplot([tau for tau in range(len(sol['replicator_solution'][0]))], [sol['replicator_solution'][1], sol['replicator_solution'][3]], labels = ['Strain 1', 'Strain 2'])
     #Labeling everything
     for i in range(2):
         ax[0, i].set(xlabel="t")
@@ -220,11 +223,14 @@ def plot(sol):
 
 
 
-
+print('Total infection is:', sol['T'])
 plot(sol)
 plt.show()
 
-ds = np.linspace(0, 5*epsilon, 30)
+
+
+
+ds = np.linspace(0, epsilon, 30)
 sols = []
 zs1 = []
 zs2 = []
