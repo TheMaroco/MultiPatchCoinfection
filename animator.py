@@ -2,7 +2,7 @@
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
-from system import plot
+
   
 def animate(parameter, data1, data2, axis_labels = [], plt_labels = []):
     x = []
