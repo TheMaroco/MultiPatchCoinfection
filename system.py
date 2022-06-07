@@ -31,7 +31,7 @@ def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
 
     return eqlist
 
-def system(t, v, r, beta, sgamma, cgamma, K, p, q,  d):
+def system(v, tspan, r, beta, sgamma, cgamma, K, p, q,  d):
     """Function to return the system of differential equations for two patch, 2-strain system.
     t: time variable
     v: wrapper vector for all variables: Should have 14 entries
@@ -57,7 +57,7 @@ def system(t, v, r, beta, sgamma, cgamma, K, p, q,  d):
     J2 = I2 + q[2]*I21 + p[2]*I12 + q[3]*I22 + p[3]*I22
     eqS = r*(1 - S) + sgamma[0]*I1 + sgamma[1]*I2 + cgamma[0]*I11 + cgamma[1]*I12 + cgamma[2]*I21 + cgamma[3]*I22 - beta[0]*S*J1 - beta[1]*S*J2 + d*M@S
     eqI1 = beta[0]*J1*S - (r + sgamma[0])*I1 - beta[0]*K[0]*I1*J1 - beta[1]*K[1]*I1*J2 + d*M@I1
-    eqI2 = beta[1]*J2*S - (r + sgamma[1])*I2 - beta[0]*K[2]*I2*J1 - beta[1]*K[3]*I2*J2
+    eqI2 = beta[1]*J2*S - (r + sgamma[1])*I2 - beta[0]*K[2]*I2*J1 - beta[1]*K[3]*I2*J2 + d*M@I2
     eqI11 = beta[0]*K[0]*I1*J1 - (r + cgamma[0])*I11 + d*M@I11
     eqI12 = beta[1]*K[1]*I1*J2 - (r + cgamma[1])*I12 + d*M@I12
     eqI21 = beta[0]*K[2]*I2*J1 - (r + cgamma[2])*I21 + d*M@I21
@@ -84,15 +84,15 @@ def system(t, v, r, beta, sgamma, cgamma, K, p, q,  d):
 
 
 def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
-    return integrate.solve_ivp(system, t, v0, args = (r, beta, sgamma, cgamma, K, p, q, d), dense_output=False, method='BDF', rtol = 1e-13)
+    return integrate.odeint(system, v0, t, args = (r, beta, sgamma, cgamma, K, p, q, d))
 
 
 #Two patch parameters
 epsilon = 0.1
-t = np.linspace(0, 400, 100)
-dt = t[1] - t[0]
-tau = t*epsilon
-v0 = [100, 100, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1]
+tspan = np.linspace(0, 20, 100)
+dt = tspan[1] - tspan[0]
+tau = tspan*epsilon
+v0 = [0.7, 0.7, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 N = sum(v0)
 r = np.array([1.2, 1.2])
 neutralbeta = 5
@@ -104,7 +104,7 @@ cgamma = [neutralgamma*np.array([1 + epsilon*0.8,1 + epsilon*0.6]), neutralgamma
 K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + epsilon*1.1, 1 + epsilon*0.8]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.6]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.3])]
 p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
 q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
-d = epsilon
+d = 0
 
 
 #Three Patch Parameters
@@ -126,16 +126,16 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
     m = r + neutralgamma
     measures = dict()
     measures['R_0'] = neutralbeta/m
-    solution = solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d)
+    solution = solve(system, tspan, v0, r, beta, sgamma, cgamma, K, p, q, d)
     measures['solution'] = solution
 
-    Sstar = np.array([solution.y[0][-1], solution.y[1][-1]])
-    I1star =  np.array([solution.y[2][-1], solution.y[3][-1]])
-    I2star =  np.array([solution.y[4][-1], solution.y[5][-1]])
-    I11star = np.array([solution.y[6][-1], solution.y[7][-1]])
-    I12star = np.array([solution.y[8][-1], solution.y[9][-1]])
-    I21star = np.array([solution.y[10][-1], solution.y[11][-1]])
-    I22star = np.array([solution.y[12][-1], solution.y[13][-1]])
+    Sstar = np.array([solution.T[0][-1], solution.T[1][-1]])
+    I1star =  np.array([solution.T[2][-1], solution.T[3][-1]])
+    I2star =  np.array([solution.T[4][-1], solution.T[5][-1]])
+    I11star = np.array([solution.T[6][-1], solution.T[7][-1]])
+    I12star = np.array([solution.T[8][-1], solution.T[9][-1]])
+    I21star = np.array([solution.T[10][-1], solution.T[11][-1]])
+    I22star = np.array([solution.T[12][-1], solution.T[13][-1]])
     measures['I1*'] = I1star
     measures['I2*'] = I2star
     measures['I11*'] = I11star
@@ -190,23 +190,27 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
 
 
 
-sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, epsilon, epsilon)
+sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
 print(sol['replicator_solution'][0][-1] + sol['replicator_solution'][1][-1] + sol['replicator_solution'][2][-1] + sol['replicator_solution'][3][-1])
 print(sol['z1'] + sol['z2'])
 print('R_0 is:', sol['R_0'])
+print('Lambdas')
+print(sol['lambda1_2'], sol['lambda2_1'])
 def plot(sol):
     """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
     solution = sol['solution']
 
     labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
     
+    #print(solution.t)
 
+    print(solution[:, :5])
     fig, ax = plt.subplots(2, 2, figsize = (10, 10))
     #fig.subplots_adjust(wspace = 0.5)
 
     for i in range(7):
-        ax[0, 0].plot([t for t in range(len(solution.y[0]))], solution.y[2*i], label = labels[2*i])
-        ax[0, 1].plot([t for t in range(len(solution.y[0]))], solution.y[2*i + 1], label = labels[2*i+1])
+        ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
+        ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
 
     ax[1, 0].stackplot([tau for tau in range(len(sol['replicator_solution'][0]))], [sol['replicator_solution'][0], sol['replicator_solution'][2]], labels = ['Strain 1', 'Strain 2'])
     ax[1, 1].stackplot([tau for tau in range(len(sol['replicator_solution'][0]))], [sol['replicator_solution'][1], sol['replicator_solution'][3]], labels = ['Strain 1', 'Strain 2'])
