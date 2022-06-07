@@ -181,7 +181,7 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
     weight = np.array([1/detP[0]*(-D[0]*(I[1]-I[0]) + 2*T[0]*(T[1]- T[0])) , 1/detP[1]*(-D[1]*(I[0]-I[1]) + 2*T[1]*(T[0]- T[1])) ])
     measures['weight'] = weight
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
-    measures['replicator_solution'] = integrate.solve_ivp(replicator, tau, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
+    measures['replicator_solution'] = integrate.solve_ivp(replicator, tspan, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
 
 
     
