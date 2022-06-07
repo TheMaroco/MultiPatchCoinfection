@@ -31,7 +31,7 @@ def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
 
     return eqlist
 
-def system(v, tspan, r, beta, sgamma, cgamma, K, p, q,  d):
+def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, d = 0):
     """Function to return the system of differential equations for two patch, 2-strain system.
     t: time variable
     v: wrapper vector for all variables: Should have 14 entries
@@ -83,40 +83,40 @@ def system(v, tspan, r, beta, sgamma, cgamma, K, p, q,  d):
     return eqs 
 
 
-def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d):
+def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d = 0):
     return integrate.odeint(system, v0, t, args = (r, beta, sgamma, cgamma, K, p, q, d))
 
 
 #Two patch parameters
-epsilon = 0.1
-tspan = np.linspace(0, 20, 100)
-dt = tspan[1] - tspan[0]
-tau = tspan*epsilon
-v0 = [0.7, 0.7, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-N = sum(v0)
-r = np.array([1.2, 1.2])
-neutralbeta = 5
-neutralgamma = 1.3
-neutralk = 1
-beta = [neutralbeta*np.array([1 + epsilon*1.6, 1 + epsilon*1.8]), neutralbeta*np.array([1+epsilon*2, 1 + epsilon*1.9])]
-sgamma = [neutralgamma*np.array([1 + epsilon*0.8, 1 + epsilon*0.7]), neutralgamma*np.array([1 + epsilon*0.7, 1 + epsilon*0.6])]
-cgamma = [neutralgamma*np.array([1 + epsilon*0.8,1 + epsilon*0.6]), neutralgamma*np.array([1+ epsilon*0.5, 1 + epsilon*1.4]), neutralgamma*np.array([1 + epsilon*1.2, 1 + epsilon*0.6]), neutralgamma*np.array([1 + epsilon*1.4, 1 + epsilon*1.2])]
-K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + epsilon*1.1, 1 + epsilon*0.8]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.6]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.3])]
-p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
-q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
-d = 0
+# epsilon = 0.1
+# tspan = np.linspace(0, 20, 100)
+# dt = tspan[1] - tspan[0]
+# tau = tspan*epsilon
+# v0 = [0.7, 0.7, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+# N = sum(v0)
+# r = np.array([1.2, 1.2])
+# neutralbeta = 5
+# neutralgamma = 1.3
+# neutralk = 1
+# beta = [neutralbeta*np.array([1 + epsilon*1.6, 1 + epsilon*1.8]), neutralbeta*np.array([1+epsilon*2, 1 + epsilon*1.9])]
+# sgamma = [neutralgamma*np.array([1 + epsilon*0.8, 1 + epsilon*0.7]), neutralgamma*np.array([1 + epsilon*0.7, 1 + epsilon*0.6])]
+# cgamma = [neutralgamma*np.array([1 + epsilon*0.8,1 + epsilon*0.6]), neutralgamma*np.array([1+ epsilon*0.5, 1 + epsilon*1.4]), neutralgamma*np.array([1 + epsilon*1.2, 1 + epsilon*0.6]), neutralgamma*np.array([1 + epsilon*1.4, 1 + epsilon*1.2])]
+# K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + epsilon*1.1, 1 + epsilon*0.8]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.6]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.3])]
+# p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
+# q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
+# d = 0
 
 
-#Three Patch Parameters
-v03 = [70, 70, 70, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-N = sum(v0)
-r3 =np.array([1, 1.2, 0.8])
-beta3 = [np.array([1.1, 1.2, 1.5]), np.array([1.2, 1.3, 1.4])]
-sgamma3 = [np.array([0.8, 0.7, 1]), np.array([0.7, 0.6, 1.1])]
-cgamma3 = [np.array([1,0.6, 1.2]), np.array([1, 0.4, 1.5]), np.array([1.2, 0.6, 0.9]), np.array([1.4, 1.2, 1.2])]
-K3 = [np.array([1,1.2, 1]), np.array([1.1, 0.8, 0.9]), np.array([1.4, 1.6, 1.2]), np.array([1.4, 1.3, 1.2])]
-p3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
-q3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
+# #Three Patch Parameters
+# v03 = [70, 70, 70, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+# N = sum(v0)
+# r3 =np.array([1, 1.2, 0.8])
+# beta3 = [np.array([1.1, 1.2, 1.5]), np.array([1.2, 1.3, 1.4])]
+# sgamma3 = [np.array([0.8, 0.7, 1]), np.array([0.7, 0.6, 1.1])]
+# cgamma3 = [np.array([1,0.6, 1.2]), np.array([1, 0.4, 1.5]), np.array([1.2, 0.6, 0.9]), np.array([1.4, 1.2, 1.2])]
+# K3 = [np.array([1,1.2, 1]), np.array([1.1, 0.8, 0.9]), np.array([1.4, 1.6, 1.2]), np.array([1.4, 1.3, 1.2])]
+# p3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
+# q3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
 
 
 
@@ -190,12 +190,12 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
 
 
 
-sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
-print(sol['replicator_solution'][0][-1] + sol['replicator_solution'][1][-1] + sol['replicator_solution'][2][-1] + sol['replicator_solution'][3][-1])
-print(sol['z1'] + sol['z2'])
-print('R_0 is:', sol['R_0'])
-print('Lambdas')
-print(sol['lambda1_2'], sol['lambda2_1'])
+# sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
+# print(sol['replicator_solution'][0][-1] + sol['replicator_solution'][1][-1] + sol['replicator_solution'][2][-1] + sol['replicator_solution'][3][-1])
+# print(sol['z1'] + sol['z2'])
+# print('R_0 is:', sol['R_0'])
+# print('Lambdas')
+# print(sol['lambda1_2'], sol['lambda2_1'])
 def plot(sol):
     """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
     solution = sol['solution']
@@ -227,42 +227,42 @@ def plot(sol):
 
 
 
-print('Total infection is:', sol['T'])
-plot(sol)
-plt.show()
+# print('Total infection is:', sol['T'])
+# plot(sol)
+# plt.show()
 
 
 
 
-ds = np.linspace(0, epsilon, 30)
-sols = []
-zs1 = []
-zs2 = []
-p1lambda1_2s = []
-p1lambda2_1s = []
-for d in ds:
-    s = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
-    sols.append(s)
-    zs1.append(s['replicator_solution'][0][-1])  #Now looking at solution from the replicator
-    zs2.append(s['replicator_solution'][1][-1])
-    p1lambda1_2s.append(s['lambda1_2'])
-    p1lambda2_1s.append(s['lambda2_1'])
+# ds = np.linspace(0, epsilon, 30)
+# sols = []
+# zs1 = []
+# zs2 = []
+# p1lambda1_2s = []
+# p1lambda2_1s = []
+# for d in ds:
+#     s = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
+#     sols.append(s)
+#     zs1.append(s['replicator_solution'][0][-1])  #Now looking at solution from the replicator
+#     zs2.append(s['replicator_solution'][1][-1])
+#     p1lambda1_2s.append(s['lambda1_2'])
+#     p1lambda2_1s.append(s['lambda2_1'])
 
-Animate(t, tau, ds, sols)
-# test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
-# print(test[0] - test[1])
+# Animate(t, tau, ds, sols)
+# # test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
+# # print(test[0] - test[1])
 
-animate(ds, zs1, zs2, ['d', 'z1'], ['z1 of first patch', 'z1 of second patch'])
+# animate(ds, zs1, zs2, ['d', 'z1'], ['z1 of first patch', 'z1 of second patch'])
 
-plt.show()
+# plt.show()
 
 
-plt.stackplot(ds, zs1, label = 'z1 of first patch')
-#plt.plot(ds, zs2, label = 'z1 of second patch')
-plt.title('Variation of z as function of diffusion')
-plt.xlabel('d')
-plt.ylabel('z1')
+# plt.stackplot(ds, zs1, label = 'z1 of first patch')
+# #plt.plot(ds, zs2, label = 'z1 of second patch')
+# plt.title('Variation of z as function of diffusion')
+# plt.xlabel('d')
+# plt.ylabel('z1')
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
 
