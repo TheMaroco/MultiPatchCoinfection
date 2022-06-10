@@ -4,6 +4,15 @@ from system import system, neutralsystem
 import matplotlib.pyplot  as  plt
 
 
+def zipper(lists):
+    ls = []
+    for pos in range(len(lists[0])):
+        for List in lists:
+            ls.append(List[pos])
+
+    return ls
+
+
 class patch:
 
     def __init__(self, name, v0, r, neutralbeta, neutralgamma, neutralk, epsilon):
@@ -36,29 +45,29 @@ class patch:
         self.lambda1_2 = 0
         self.lambda2_1 = 0
     
-    def b(self, bi = [0, 0]):
+    def define_b(self, bi = [0, 0]):
         """Function to generate the non-neutral betas. bi is the strain specific reproduction rates."""
         #To generalize this to more strains -> make bi be a higher dimensional vector, use a for (over i in range(len(bi))) and append with the formula nbeta*(1 + epsilon*bi[i])
         self.beta = np.array([self.nbeta*(1 + self.epsilon*bi[0]), self.nbeta*(1 + self.epsilon*bi[1])])
         return self.beta
-    def sgamma(self, gammai = [0, 0]):
+    def define_sgamma(self, gammai = [0, 0]):
         """Function to generate the non-neutral single infectio gammas. gammai is the strain specific clearance rates."""
         self.sgamma = np.array([self.ngamma*(1 + self.epsilon*gammai[0]), self.ngamma*(1 + self.epsilon*gammai[1])])
         return self.sgamma
 
-    def cgamma(self, cgammai = [0, 0, 0, 0]):
+    def define_cgamma(self, cgammai = [0, 0, 0, 0]):
         self.cgamma = self.ngamma*np.array([1 + self.epsilon*cgammai[0], 1 + self.epsilon*cgammai[1], 1 + self.epsilon*cgammai[2], 1 + self.epsilon*cgammai[3]])
         return self.cgamma
     #Keep doing this for the remaining parameters
     
-    def K(self, k = np.zeros(8)):
+    def define_K(self, k = np.zeros(8)):
         self.K = [self.nk*np.array([1+ self.epsilon*k[0],1 + self.epsilon*k[1]]), self.nk*np.array([1 + self.epsilon*k[2], 1 + self.epsilon*k[3]]), self.nk*np.array([1 + self.epsilon*k[4], 1 + self.epsilon*k[5]]), self.nk*np.array([1 + self.epsilon*k[6], 1 + self.epsilon*k[7]])]
         return self.K
 
-    def p(self, p = np.zeros(2)):
+    def define_p(self, p = np.zeros(2)):
         self.p = [1, 0.5 + self.epsilon*p[1], 0.5 + self.epsilon*p[2], 1]
         return self.p
-    def q(self, q = np.zeros(2)):
+    def define_q(self, q = np.zeros(2)):
         self.q = [1, 0.5 + self.epsilon*q[1], 0.5 + self.epsilon*q[2], 1]
         return self.q
 
@@ -99,10 +108,63 @@ class patch:
 
 
 
+class metaPopulation:
+     def __init__(self, patches, d):
+        n = len(patches) 
+        v0s = []
+        rs = []
+        nbetas  =  []
+        ngammas =  []
+        nks = []
+        betas = []
+        for i in range(7):
+            for patch in patches:
+                v0s.append(patch.v0[i])
+                
+       
+        for patch in patches:
+            rs.append(patch.r) 
+            nbetas.append(patch.nbeta)
+            ngammas.append(patch.ngamma)
+            nks.append(patch.k)
+            # self.sgamma = 
+            # self.cgamma = 
+            # self.K = 
+
+        # for j in range(2):
+        #     for i in range(n):
+        #         betas.append(patches[i].b)~
+
+        beta1 = np.zeros(n)
+        beta2 = np.zeros(n)
+        for i in range(n):
+            beta1[i] = patches[i].beta[0]
+            beta2[i] = patches[i].beta[1]
+        
+        betas = [beta1, beta2]
+
+        self.v0 = v0s
+        self.r = rs
+        self.nbeta = nbetas
+        self.ngamma = ngammas
+        self.nk = nks
+        self.beta = betas
+
+
+
+
 
 
 
 patch1 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 4, 2, 1, 0.1)
+patch1.define_b()
+patch2 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1)
+patch2.define_b()
+patches = [patch1, patch2]
+meta = metaPopulation(patches, 0)
+print(meta.v0)
+print(meta.beta)
+
 
 
 
