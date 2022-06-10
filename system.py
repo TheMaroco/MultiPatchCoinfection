@@ -31,6 +31,32 @@ def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
 
     return eqlist
 
+def neutralsystem(v, t, r, beta, gamma, K, p = [1, 0.5, 0.5, 1], q = [1, 0.5, 0.5, 1], d = 0):
+    """Function to return the system for the neutral model."""
+    n = int(len(v)/7)  #There's always 7 infection classes: S, I1, I2, I11, I12, I21, I22
+    S = v[0]
+    I1 = v[1]
+    I2 = v[2]
+    I11 = v[3]
+    I12 = v[4]
+    I21 = v[5]
+    I22 = v[6]
+    J1 = I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21
+    J2 = I2 + q[2]*I21 + p[2]*I12 + q[3]*I22 + p[3]*I22
+    eqS = r*(1 - S) + gamma*I1 + gamma*I2 + gamma*I11 + gamma*I12 + gamma*I21 + gamma*I22 - beta*S*J1 - beta*S*J2 
+    eqI1 = beta*J1*S - (r + gamma)*I1 - beta*K*I1*J1 - beta*K*I1*J2 
+    eqI2 = beta*J2*S - (r + gamma)*I2 - beta*K*I2*J1 - beta*K*I2*J2 
+    eqI11 = beta*K*I1*J1 - (r + gamma)*I11 
+    eqI12 = beta*K*I1*J2 - (r + gamma)*I12 
+    eqI21 = beta*K*I2*J1 - (r + gamma)*I21 
+    eqI22 = beta*K*I2*J2 - (r + gamma)*I22 
+
+
+    return [eqS, eqI1, eqI2, eqI11, eqI12, eqI21, eqI22]
+
+
+
+
 def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, d = 0):
     """Function to return the system of differential equations for two patch, 2-strain system.
     t: time variable
