@@ -151,9 +151,16 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
     m = r + neutralgamma
     measures = dict()
-    measures['R_0'] = neutralbeta/m
+    R0 = neutralbeta/m
+    measures['R_0'] = R0
     solution = solve(system, tspan, v0, r, beta, sgamma, cgamma, K, p, q, M, d)
     measures['solution'] = solution
+    
+    TSstar = 1/R0
+    TTstar = 1 - TSstar
+
+    TIstar = TTstar/(1 + neutralk[0][0]*(R0 - 1))
+    TDstar = TTstar - TIstar
 
     Sstar = np.array([solution.T[0][-1], solution.T[1][-1]])
     I1star =  np.array([solution.T[2][-1], solution.T[3][-1]])
@@ -168,13 +175,13 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     measures['I12*'] = I12star
     measures['I21*'] = I21star
     measures['I22*'] = I22star
-    T =I1star + I2star + I11star + I12star + I21star + I22star
+    T = I1star + I2star + I11star + I12star + I21star + I22star
     I = I1star + I2star
     D = T - I
     measures['T'] = T
     measures['I'] = I
     measures['D'] = D
-    detP = np.array([np.linalg.det([[2*T[0], I[0]], [D[0], T[0]]]), np.linalg.det([[2*T[1], I[1]], [D[1], T[1]]])])
+    detP = np.array([np.linalg.det([[2*TTstar[0], TIstar[0]], [TDstar[0], TTstar[0]]]), np.linalg.det([[2*TTstar[1], TIstar[1]], [TDstar[1], TTstar[1]]])])
     z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
     z2 = np.array([(I2star + I22star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
     measures['z1'] = z1
@@ -182,11 +189,11 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
 
     #Implement invasion fitness lambda_i_j for each patch
     #These are still vectors (one entry for each patch)     
-    Theta1 = (2*neutralbeta*Sstar*T**2)/detP
-    Theta2 = neutralgamma*I*(I + T)/detP
-    Theta3 = neutralgamma*T*D/detP
-    Theta4 = 2*m*T*D/detP
-    Theta5 = neutralbeta*T*I*D/detP
+    Theta1 = (2*neutralbeta*TSstar*T**2)/detP
+    Theta2 = neutralgamma*TIstar*(TIstar + TTstar)/detP
+    Theta3 = neutralgamma*TTstar*TDstar/detP
+    Theta4 = 2*m*TTstar*TDstar/detP
+    Theta5 = neutralbeta*TTstar*TIstar*TDstar/detP
     Theta = Theta1 + Theta2 + Theta3 + Theta4 + Theta5
     theta1 = Theta1/Theta
     theta2 = Theta2/Theta
@@ -208,7 +215,7 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     measures['weight'] = weight
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
 
-    measures['replicator_solution'] = integrate.odeint(replicator, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], tspan, args = (Theta, lambda1_2, lambda2_1, weight))
+    measures['replicator_solution'] = integrate.odeint(replicator, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], tspan, args = (Theta, lambda1_2, lambda2_1, weight), full_output=1)
 
 
     
@@ -239,8 +246,8 @@ def plot(sol, tspan):
         ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
         ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
 
-    ax[1, 0].stackplot([tau for tau in range(len(sol['replicator_solution'][0]))], [sol['replicator_solution'][0], sol['replicator_solution'][2]], labels = ['Strain 1', 'Strain 2'])
-    ax[1, 1].stackplot([tau for tau in range(len(sol['replicator_solution'][0]))], [sol['replicator_solution'][1], sol['replicator_solution'][3]], labels = ['Strain 1', 'Strain 2'])
+    ax[1, 0].plot(tspan, sol['replicator_solution'][:, 1], label = 'Strain 1')
+    ax[1, 1].stackplot(tspan, [sol['replicator_solution'][:, 1], sol['replicator_solution'][:, 3]], labels = ['Strain 1', 'Strain 2'])
     #Labeling everything
     for i in range(2):
         ax[0, i].set(xlabel="t")

@@ -3,7 +3,7 @@ from model import *
 from population import patch, metaPopulation
 
 
-t = np.linspace(0, 10, 100)
+t = np.linspace(0, 100, 100)
 
 
 epsilon = 0.1
