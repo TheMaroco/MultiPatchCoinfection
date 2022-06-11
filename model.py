@@ -7,7 +7,7 @@ from animation import Animate
 
 
 
-def replicator(z, tau, Theta, lambda1_2, lambda2_1, weight):
+def replicator(z, t, Theta, lambda1_2, lambda2_1, weight):
     """Function for the replicator equation using the summarized parameters."""
     #lambda1_2 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
     #lambda2_1 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)

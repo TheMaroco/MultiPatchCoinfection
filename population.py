@@ -113,7 +113,7 @@ class metaPopulation:
         nbetas  =  np.zeros(n)
         ngammas =  np.zeros(n)
         nks = n*[None]
-
+        
         for i in range(7):
             for patch in patches:
                 v0s.append(patch.v0[i])
@@ -176,13 +176,20 @@ class metaPopulation:
         self.M = M
         self.epsilon = patches[0].epsilon
 
+        R0s = np.zeros(n)
+        for i in range(n):
+            R0s[i] = patches[i].R0
+        self.R0s = R0s
+
+
     def solution(self, tspan):
         return solve(system, tspan, self.v0, self.r, self.beta, self.sgamma, self.cgamma, self.K, self.p, self.q, self.d, self.M)
 
     def measures(self, tspan):
         return analysis(system, tspan, self.v0, self.r, self.nbeta, self.beta, self.ngamma, self.sgamma, self.cgamma, self.nk,  self.K, self.p, self.q, self.M, self.d, self.epsilon)
 
-
+    def meanR0(self):
+        return np.mean(self.R0s)
 
 
 
