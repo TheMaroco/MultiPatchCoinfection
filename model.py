@@ -5,9 +5,9 @@ import matplotlib.pyplot  as  plt
 from animator import animate
 from animation import Animate
 
-M = np.array([[-1, 1], [1, -1]])
 
-def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
+
+def replicator(z, tau, Theta, lambda1_2, lambda2_1, weight):
     """Function for the replicator equation using the summarized parameters."""
     #lambda1_2 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
     #lambda2_1 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
@@ -31,7 +31,7 @@ def replicator(tau, z, Theta, lambda1_2, lambda2_1, weight):
 
     return eqlist
 
-def neutralsystem(v, t, r, beta, gamma, K, p = [1, 0.5, 0.5, 1], q = [1, 0.5, 0.5, 1], d = 0):
+def neutralsystem(v, t, r, beta, gamma, K, p = [1, 0.5, 0.5, 1], q = [1, 0.5, 0.5, 1]):
     """Function to return the system for the neutral model."""
     n = int(len(v)/7)  #There's always 7 infection classes: S, I1, I2, I11, I12, I21, I22
     S = v[0]
@@ -57,7 +57,7 @@ def neutralsystem(v, t, r, beta, gamma, K, p = [1, 0.5, 0.5, 1], q = [1, 0.5, 0.
 
 
 
-def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, d = 0):
+def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
     """Function to return the system of differential equations for two patch, 2-strain system.
     t: time variable
     v: wrapper vector for all variables: Should have 14 entries
@@ -109,8 +109,8 @@ def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, d = 0):
     return eqs 
 
 
-def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d = 0):
-    return integrate.odeint(system, v0, t, args = (r, beta, sgamma, cgamma, K, p, q, d))
+def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
+    return integrate.odeint(system, v0, t, args = (r, beta, sgamma, cgamma, K, p, q, M,  d))
 
 
 #Two patch parameters
@@ -147,12 +147,12 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, d = 0):
 
 
 
-def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk,  K, p, q, d, epsilon):
+def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk,  K, p, q, M, d, epsilon):
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
     m = r + neutralgamma
     measures = dict()
     measures['R_0'] = neutralbeta/m
-    solution = solve(system, tspan, v0, r, beta, sgamma, cgamma, K, p, q, d)
+    solution = solve(system, tspan, v0, r, beta, sgamma, cgamma, K, p, q, M, d)
     measures['solution'] = solution
 
     Sstar = np.array([solution.T[0][-1], solution.T[1][-1]])
@@ -207,7 +207,8 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
     weight = np.array([1/detP[0]*(-D[0]*(I[1]-I[0]) + 2*T[0]*(T[1]- T[0])) , 1/detP[1]*(-D[1]*(I[0]-I[1]) + 2*T[1]*(T[0]- T[1])) ])
     measures['weight'] = weight
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
-    measures['replicator_solution'] = integrate.solve_ivp(replicator, tspan, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], args = (Theta, lambda1_2, lambda2_1, weight), dense_output=True, method = 'BDF', rtol = 1e-13).y
+
+    measures['replicator_solution'] = integrate.odeint(replicator, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], tspan, args = (Theta, lambda1_2, lambda2_1, weight))
 
 
     
@@ -222,7 +223,7 @@ def analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neu
 # print('R_0 is:', sol['R_0'])
 # print('Lambdas')
 # print(sol['lambda1_2'], sol['lambda2_1'])
-def plot(sol):
+def plot(sol, tspan):
     """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
     solution = sol['solution']
 
@@ -230,7 +231,7 @@ def plot(sol):
     
     #print(solution.t)
 
-    print(solution[:, :5])
+    
     fig, ax = plt.subplots(2, 2, figsize = (10, 10))
     #fig.subplots_adjust(wspace = 0.5)
 

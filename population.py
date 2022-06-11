@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import integrate
-from system import system, neutralsystem
+from model import analysis, system, neutralsystem, solve
 import matplotlib.pyplot  as  plt
 
 
@@ -21,12 +21,12 @@ class patch:
         self.v = np.array(v0)
         self.r = np.array(r)
         self.nbeta = np.array(neutralbeta)
-        self.b = self.nbeta
+        self.beta = self.nbeta*np.ones(4)
         self.ngamma = np.array(neutralgamma)
-        self.sgamma = self.ngamma
+        self.sgamma = self.ngamma*np.ones(2)
         self.cgamma = self.ngamma*np.ones(4)
         self.nk = np.array(neutralk)
-        self.k = self.nk
+        self.K = self.nk*np.ones(4)
         self.p = self.q = 0.5*np.ones(4)
         self.epsilon = epsilon
         self.m = np.array(r) + np.array(neutralgamma)
@@ -45,10 +45,10 @@ class patch:
         self.lambda1_2 = 0
         self.lambda2_1 = 0
     
-    def define_b(self, bi = [0, 0]):
+    def define_beta(self, b = [0, 0]):
         """Function to generate the non-neutral betas. bi is the strain specific reproduction rates."""
         #To generalize this to more strains -> make bi be a higher dimensional vector, use a for (over i in range(len(bi))) and append with the formula nbeta*(1 + epsilon*bi[i])
-        self.beta = np.array([self.nbeta*(1 + self.epsilon*bi[0]), self.nbeta*(1 + self.epsilon*bi[1])])
+        self.beta = np.array([self.nbeta*(1 + self.epsilon*b[0]), self.nbeta*(1 + self.epsilon*b[1])])
         return self.beta
     def define_sgamma(self, gammai = [0, 0]):
         """Function to generate the non-neutral single infectio gammas. gammai is the strain specific clearance rates."""
@@ -60,15 +60,15 @@ class patch:
         return self.cgamma
     #Keep doing this for the remaining parameters
     
-    def define_K(self, k = np.zeros(8)):
-        self.K = [self.nk*np.array([1+ self.epsilon*k[0],1 + self.epsilon*k[1]]), self.nk*np.array([1 + self.epsilon*k[2], 1 + self.epsilon*k[3]]), self.nk*np.array([1 + self.epsilon*k[4], 1 + self.epsilon*k[5]]), self.nk*np.array([1 + self.epsilon*k[6], 1 + self.epsilon*k[7]])]
+    def define_K(self, alpha = np.zeros(4)):
+        self.K = np.array([self.nk + self.epsilon*alpha[0], self.nk + self.epsilon*alpha[1], self.nk + self.epsilon*alpha[2], self.nk + self.epsilon*alpha[3] ])
         return self.K
 
     def define_p(self, p = np.zeros(2)):
-        self.p = [1, 0.5 + self.epsilon*p[1], 0.5 + self.epsilon*p[2], 1]
+        self.p = [1, 0.5 + self.epsilon*p[0], 0.5 + self.epsilon*p[1], 1]
         return self.p
     def define_q(self, q = np.zeros(2)):
-        self.q = [1, 0.5 + self.epsilon*q[1], 0.5 + self.epsilon*q[2], 1]
+        self.q = [1, 0.5 + self.epsilon*q[0], 0.5 + self.epsilon*q[1], 1]
         return self.q
 
     def invasion_fitness(self):
@@ -105,65 +105,106 @@ class patch:
 
 
 
-
-
-
 class metaPopulation:
-     def __init__(self, patches, d):
+    def __init__(self, patches, d, M):
         n = len(patches) 
         v0s = []
-        rs = []
-        nbetas  =  []
-        ngammas =  []
-        nks = []
-        betas = []
+        rs = np.zeros(n)
+        nbetas  =  np.zeros(n)
+        ngammas =  np.zeros(n)
+        nks = n*[None]
+
         for i in range(7):
             for patch in patches:
                 v0s.append(patch.v0[i])
                 
-       
-        for patch in patches:
-            rs.append(patch.r) 
-            nbetas.append(patch.nbeta)
-            ngammas.append(patch.ngamma)
-            nks.append(patch.k)
-            # self.sgamma = 
-            # self.cgamma = 
-            # self.K = 
-
-        # for j in range(2):
-        #     for i in range(n):
-        #         betas.append(patches[i].b)~
+        for i in range(n):
+            rs[i] = patches[i].r
+            nbetas[i] = patches[i].nbeta
+            ngammas[i] = patches[i].ngamma
+            nks[i] = patches[i].K
 
         beta1 = np.zeros(n)
         beta2 = np.zeros(n)
+        sgamma1 = np.zeros(n)
+        sgamma2 = np.zeros(n)
+        cgamma11 = np.zeros(n)
+        cgamma12 = np.zeros(n)
+        cgamma21 = np.zeros(n)
+        cgamma22 = np.zeros(n)
+        k11 = np.zeros(n)
+        k12 = np.zeros(n)
+        k21 = np.zeros(n)
+        k22 = np.zeros(n)
+        p1 = p4 = np.ones(n)
+        p2 = np.zeros(n)
+        p3 = np.zeros(n)
+        q1 = q4 = np.ones(n)
+        q2 = np.zeros(n)
+        q3 = np.zeros(n)
         for i in range(n):
             beta1[i] = patches[i].beta[0]
             beta2[i] = patches[i].beta[1]
-        
-        betas = [beta1, beta2]
+            sgamma1[i] = patches[i].sgamma[0]
+            sgamma2[i] =  patches[i].sgamma[1]
+            cgamma11[i] = patches[i].cgamma[0]
+            cgamma12[i] = patches[i].cgamma[1]
+            cgamma21[i] = patches[i].cgamma[2]
+            cgamma22[i] = patches[i].cgamma[3]
+            k11[i] = patches[i].K[0]
+            k12[i] = patches[i].K[1]
+            k21[i] = patches[i].K[2]
+            k22[i] = patches[i].K[3]
+            p2[i] = patches[i].p[1]
+            p3[i] = patches[i].p[2]
+            q2[i] = patches[i].q[1]
+            q3[i] = patches[i].q[2]
+
 
         self.v0 = v0s
         self.r = rs
         self.nbeta = nbetas
         self.ngamma = ngammas
         self.nk = nks
-        self.beta = betas
+        self.beta = [beta1, beta2]
+        self.sgamma = [sgamma1, sgamma2]
+        self.cgamma = [cgamma11, cgamma12, cgamma21, cgamma22]
+        self.K = [k11, k12, k21, k22]
+        self.p = [p1, p2, p3, p4]
+        self.q = [q1, q2, q3, q4]
+        self.d = d
+        self.M = M
+        self.epsilon = patches[0].epsilon
+
+    def solution(self, tspan):
+        return solve(system, tspan, self.v0, self.r, self.beta, self.sgamma, self.cgamma, self.K, self.p, self.q, self.d, self.M)
+
+    def measures(self, tspan):
+        return analysis(system, tspan, self.v0, self.r, self.nbeta, self.beta, self.ngamma, self.sgamma, self.cgamma, self.nk,  self.K, self.p, self.q, self.M, self.d, self.epsilon)
 
 
 
 
 
-
-
+M = np.array([[-1, 1, 1], [1, -1, 1], [1, 1, 1]])
 patch1 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 4, 2, 1, 0.1)
-patch1.define_b()
+patch1.define_beta([0.2, 0.4])
 patch2 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1)
-patch2.define_b()
-patches = [patch1, patch2]
-meta = metaPopulation(patches, 0)
-print(meta.v0)
-print(meta.beta)
+patch3 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1)
+
+
+
+# patches = [patch1, patch2, patch3]
+# patches = []
+# M = np.identity(10)
+# for k in range(10):
+#     patches.append(patch(str(k), [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1))
+# meta = metaPopulation(patches, M, 0)
+# print(meta.v0)
+# print(meta.solution(np.linspace(0, 100, 100)).shape)
+
+# plt.plot(np.linspace(0, 100, 100), meta.solution(np.linspace(0, 100, 100)))
+# plt.show()
 
 
 
