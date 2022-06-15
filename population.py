@@ -4,13 +4,6 @@ from model import analysis, system, neutralsystem, solve
 import matplotlib.pyplot  as  plt
 
 
-def zipper(lists):
-    ls = []
-    for pos in range(len(lists[0])):
-        for List in lists:
-            ls.append(List[pos])
-
-    return ls
 
 
 class patch:
@@ -64,8 +57,8 @@ class patch:
         self.K = np.array([self.nk + self.epsilon*alpha[0], self.nk + self.epsilon*alpha[1], self.nk + self.epsilon*alpha[2], self.nk + self.epsilon*alpha[3] ])
         return self.K
 
-    def define_p(self, p = np.zeros(2)):
-        self.p = [1, 0.5 + self.epsilon*p[0], 0.5 + self.epsilon*p[1], 1]
+    def define_p(self, p = np.zeros(2)):   #CHANGE THIS
+        self.p = [1, 0.5 + self.epsilon*p[0], 0.5 + self.epsilon*p[1], 1]   
         return self.p
     def define_q(self, q = np.zeros(2)):
         self.q = [1, 0.5 + self.epsilon*q[0], 0.5 + self.epsilon*q[1], 1]

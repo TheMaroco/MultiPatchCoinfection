@@ -28,7 +28,6 @@ def replicator(z, t, Theta, lambda1_2, lambda2_1, weight):
         for j in range(2):
             eqlist.append(Theta[j]*Z[i, j]*((Lambdas[j]@Z[:,j])[i] - np.transpose(Z[:, j])@Lambdas[j]@Z[:, j]) + (weight[j]-1)*(Z[i, (j+1)%2] - Z[i, j]))
 
-
     return eqlist
 
 def neutralsystem(v, t, r, beta, gamma, K, p = [1, 0.5, 0.5, 1], q = [1, 0.5, 0.5, 1]):
@@ -79,8 +78,8 @@ def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
     I12 = v[4*n:5*n]
     I21 = v[5*n:6*n]
     I22 = v[6*n:]
-    J1 = I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21
-    J2 = I2 + q[2]*I21 + p[2]*I12 + q[3]*I22 + p[3]*I22
+    J1 = I1 + 1*I11  + p*I12 + q*I21       #I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21    
+    J2 = I2 + 1*I22 + (1-p)*I12 +(1-q)*I21 #I2 + q[2]*I21 + p[2]*I12 + q[3]*I22 + p[3]*I22
     eqS = r*(1 - S) + sgamma[0]*I1 + sgamma[1]*I2 + cgamma[0]*I11 + cgamma[1]*I12 + cgamma[2]*I21 + cgamma[3]*I22 - beta[0]*S*J1 - beta[1]*S*J2 + d*M@S
     eqI1 = beta[0]*J1*S - (r + sgamma[0])*I1 - beta[0]*K[0]*I1*J1 - beta[1]*K[1]*I1*J2 + d*M@I1
     eqI2 = beta[1]*J2*S - (r + sgamma[1])*I2 - beta[0]*K[2]*I2*J1 - beta[1]*K[3]*I2*J2 + d*M@I2
@@ -155,7 +154,18 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     measures['R_0'] = R0
     solution = solve(system, tspan, v0, r, beta, sgamma, cgamma, K, p, q, M, d)
     measures['solution'] = solution
+
+    I1 = np.array([solution.T[2] + solution.T[6] + 0.5*(solution.T[8] + solution.T[10]), solution.T[3] + solution.T[7] + 0.5*(solution.T[9] + solution.T[11])])
+    I2 = np.array([solution.T[4] + solution.T[12] + 0.5*(solution.T[8] + solution.T[10]), solution.T[5] + solution.T[13] + 0.5*(solution.T[9] + solution.T[11])])
+    I = I1 + I2
+    z1 = I1/I
+    z2 = I2/I
+    measures['T'] = I
+    measures['z1'] = z1
+    measures['z2'] = z2
     
+
+    #Theoritical equilibria
     TSstar = 1/R0
     TTstar = 1 - TSstar
 
@@ -175,21 +185,21 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     measures['I12*'] = I12star
     measures['I21*'] = I21star
     measures['I22*'] = I22star
-    T = I1star + I2star + I11star + I12star + I21star + I22star
-    I = I1star + I2star
-    D = T - I
-    measures['T'] = T
-    measures['I'] = I
-    measures['D'] = D
+    Tstar = I1star + I2star + I11star + I12star + I21star + I22star
+    Istar = I1star + I2star
+    Dstar = Tstar - Istar
+    measures['Tstar'] = Tstar
+    measures['Istar'] = Istar
+    measures['Dstar'] = Dstar
     detP = np.array([np.linalg.det([[2*TTstar[0], TIstar[0]], [TDstar[0], TTstar[0]]]), np.linalg.det([[2*TTstar[1], TIstar[1]], [TDstar[1], TTstar[1]]])])
-    z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
-    z2 = np.array([(I2star + I22star + 0.5*I21star + +0.5*I12star)[0]/T[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/T[1]])
-    measures['z1'] = z1
-    measures['z2'] = z2
+    # z1 = np.array([(I1star + I11star + 0.5*I21star + +0.5*I12star)[0]/Tstar[0], (I1star + I11star + 0.5*I21star + 0.5*I12star)[1]/Tstar[1]])
+    # z2 = np.array([(I2star + I22star + 0.5*I21star + +0.5*I12star)[0]/Tstar[0], (I2star + I22star + 0.5*I21star + 0.5*I12star)[1]/Tstar[1]])
+    # measures['z1'] = z1
+    # measures['z2'] = z2
 
     #Implement invasion fitness lambda_i_j for each patch
     #These are still vectors (one entry for each patch)     
-    Theta1 = (2*neutralbeta*TSstar*T**2)/detP
+    Theta1 = (2*neutralbeta*TSstar*Tstar**2)/detP
     Theta2 = neutralgamma*TIstar*(TIstar + TTstar)/detP
     Theta3 = neutralgamma*TTstar*TDstar/detP
     Theta4 = 2*m*TTstar*TDstar/detP
@@ -200,7 +210,7 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     theta3 = Theta3/Theta
     theta4 = Theta4/Theta
     theta5 = Theta5/Theta
-    mu = I/D
+    mu = Istar/Dstar
 
     lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
     lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
@@ -211,12 +221,14 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
 
 
-    weight = np.array([1/detP[0]*(-D[0]*(I[1]-I[0]) + 2*T[0]*(T[1]- T[0])) , 1/detP[1]*(-D[1]*(I[0]-I[1]) + 2*T[1]*(T[0]- T[1])) ])
+    weight = np.array([1/detP[0]*(-TDstar[0]*(TIstar[1]-TIstar[0]) + 2*TTstar[0]*(TTstar[1]- TTstar[0])) , 1/detP[1]*(-TDstar[1]*(TIstar[0]-TIstar[1]) + 2*TTstar[1]*(TTstar[0]- TTstar[1])) ])
     measures['weight'] = weight
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
 
-    measures['replicator_solution'] = integrate.odeint(replicator, [z1[0], z1[1], 1 - z1[0], 1 - z1[1]], tspan, args = (Theta, lambda1_2, lambda2_1, weight), full_output=1)
+    measures['replicator_solution'], info = integrate.odeint(replicator, [z1[0][0], z1[1][0], z2[0][0], z2[1][0]], tspan, args = (Theta, lambda1_2, lambda2_1, weight), full_output=True)
 
+    #print(measures['replicator_solution'])
+    #[z1[0], z1[1], 1 - z1[0], 1 - z1[1]]
 
     
 
@@ -241,13 +253,23 @@ def plot(sol, tspan):
     
     fig, ax = plt.subplots(2, 2, figsize = (10, 10))
     #fig.subplots_adjust(wspace = 0.5)
+    ax[1, 0].set_ylim([0, 1])
+    ax[1, 1].set_ylim([0, 1])
 
     for i in range(7):
         ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
         ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
-
-    ax[1, 0].plot(tspan, sol['replicator_solution'][:, 1], label = 'Strain 1')
-    ax[1, 1].stackplot(tspan, [sol['replicator_solution'][:, 1], sol['replicator_solution'][:, 3]], labels = ['Strain 1', 'Strain 2'])
+    ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
+    ax[1, 0].plot(tspan, sol['z2'][0], label = 'Strain 2')
+    #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 0], label = 'replicator strain 1')
+    #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 1], label = 'replicator strain 2')
+    print(sol['z1'][1])
+    ax[1, 1].plot(tspan, sol['z1'][1], label = 'Strain 1')
+    ax[1, 1].plot(tspan, sol['z2'][1], label = 'Strain 2')
+    #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 2], label = 'replicator solution 1')
+    #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 3], label = 'replicator solution 2')
+    
+    #ax[1, 1].stackplot(tspan, [sol['replicator_solution'][:, 1], sol['replicator_solution'][:, 3]], labels = ['Strain 1', 'Strain 2'])
     #Labeling everything
     for i in range(2):
         ax[0, i].set(xlabel="t")
