@@ -212,10 +212,12 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     theta5 = Theta5/Theta
     mu = Istar/Dstar
 
+    #This needs to be done with b_i
     lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
     lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
     measures['lambda1_2'] = lambda1_2
     measures['lambda2_1'] = lambda2_1
+    #Include these parameters in the plots
 
     measures['deltab'] = (beta[1] - beta[0])/(epsilon*neutralbeta)
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
