@@ -14,13 +14,13 @@ class patch:
         self.v = np.array(v0)
         self.r = np.array(r)
         self.nbeta = np.array(neutralbeta)
-        self.beta = self.nbeta*np.ones(4)
+        self.b = self.nbeta*np.ones(4)
         self.ngamma = np.array(neutralgamma)
         self.sgamma = self.ngamma*np.ones(2)
         self.cgamma = self.ngamma*np.ones(4)
         self.nk = np.array(neutralk)
         self.K = self.nk*np.ones(4)
-        self.p = self.q = 0.5*np.ones(4)
+        self.p = self.q = 0.5
         self.epsilon = epsilon
         self.m = np.array(r) + np.array(neutralgamma)
         self.R0 = np.array(neutralbeta)/(np.array(r) + np.array(neutralgamma))
@@ -38,11 +38,11 @@ class patch:
         self.lambda1_2 = 0
         self.lambda2_1 = 0
     
-    def define_beta(self, b = [0, 0]):
+    def define_b(self, b = [0, 0]):
         """Function to generate the non-neutral betas. bi is the strain specific reproduction rates."""
         #To generalize this to more strains -> make bi be a higher dimensional vector, use a for (over i in range(len(bi))) and append with the formula nbeta*(1 + epsilon*bi[i])
-        self.beta = np.array([self.nbeta*(1 + self.epsilon*b[0]), self.nbeta*(1 + self.epsilon*b[1])])
-        return self.beta
+        self.b = np.array([self.nbeta*(1 + self.epsilon*b[0]), self.nbeta*(1 + self.epsilon*b[1])])
+        return self.b
     def define_sgamma(self, gammai = [0, 0]):
         """Function to generate the non-neutral single infectio gammas. gammai is the strain specific clearance rates."""
         self.sgamma = np.array([self.ngamma*(1 + self.epsilon*gammai[0]), self.ngamma*(1 + self.epsilon*gammai[1])])
@@ -57,11 +57,11 @@ class patch:
         self.K = np.array([self.nk + self.epsilon*alpha[0], self.nk + self.epsilon*alpha[1], self.nk + self.epsilon*alpha[2], self.nk + self.epsilon*alpha[3] ])
         return self.K
 
-    def define_p(self, p = np.zeros(2)):   #CHANGE THIS
-        self.p = [1, 0.5 + self.epsilon*p[0], 0.5 + self.epsilon*p[1], 1]   
+    def define_p(self, p = 0):   #CHANGE THIS
+        self.p = 0.5 + self.epsilon*p
         return self.p
-    def define_q(self, q = np.zeros(2)):
-        self.q = [1, 0.5 + self.epsilon*q[0], 0.5 + self.epsilon*q[1], 1]
+    def define_q(self, q = 0):
+        self.q = 0.5 + self.epsilon*q
         return self.q
 
     def invasion_fitness(self):
@@ -115,7 +115,7 @@ class metaPopulation:
             rs[i] = patches[i].r
             nbetas[i] = patches[i].nbeta
             ngammas[i] = patches[i].ngamma
-            nks[i] = patches[i].K
+            nks[i] = patches[i].nk
 
         beta1 = np.zeros(n)
         beta2 = np.zeros(n)
@@ -129,15 +129,12 @@ class metaPopulation:
         k12 = np.zeros(n)
         k21 = np.zeros(n)
         k22 = np.zeros(n)
-        p1 = p4 = np.ones(n)
-        p2 = np.zeros(n)
-        p3 = np.zeros(n)
-        q1 = q4 = np.ones(n)
-        q2 = np.zeros(n)
-        q3 = np.zeros(n)
+        p = np.ones(n)
+        q = np.ones(n)
+
         for i in range(n):
-            beta1[i] = patches[i].beta[0]
-            beta2[i] = patches[i].beta[1]
+            beta1[i] = patches[i].b[0]
+            beta2[i] = patches[i].b[1]
             sgamma1[i] = patches[i].sgamma[0]
             sgamma2[i] =  patches[i].sgamma[1]
             cgamma11[i] = patches[i].cgamma[0]
@@ -148,10 +145,8 @@ class metaPopulation:
             k12[i] = patches[i].K[1]
             k21[i] = patches[i].K[2]
             k22[i] = patches[i].K[3]
-            p2[i] = patches[i].p[1]
-            p3[i] = patches[i].p[2]
-            q2[i] = patches[i].q[1]
-            q3[i] = patches[i].q[2]
+            p[i] = patches[i].p
+            q[i] = patches[i].q
 
 
         self.v0 = v0s
@@ -163,8 +158,8 @@ class metaPopulation:
         self.sgamma = [sgamma1, sgamma2]
         self.cgamma = [cgamma11, cgamma12, cgamma21, cgamma22]
         self.K = [k11, k12, k21, k22]
-        self.p = [p1, p2, p3, p4]
-        self.q = [q1, q2, q3, q4]
+        self.p = p
+        self.q = q
         self.d = d
         self.M = M
         self.epsilon = patches[0].epsilon
@@ -188,7 +183,7 @@ class metaPopulation:
 
 M = np.array([[-1, 1, 1], [1, -1, 1], [1, 1, 1]])
 patch1 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 4, 2, 1, 0.1)
-patch1.define_beta([0.2, 0.4])
+patch1.define_b([0.2, 0.4])
 patch2 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1)
 patch3 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1)
 

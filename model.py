@@ -78,9 +78,9 @@ def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
     I12 = v[4*n:5*n]
     I21 = v[5*n:6*n]
     I22 = v[6*n:]
-    J1 = I1 + 1*I11  + p*I12 + q*I21       #I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21    
+    J1 = I1 + 1*I11  + p*I12 + q*I21    #I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21    
     J2 = I2 + 1*I22 + (1-p)*I12 +(1-q)*I21 #I2 + q[2]*I21 + p[2]*I12 + q[3]*I22 + p[3]*I22
-    eqS = r*(1 - S) + sgamma[0]*I1 + sgamma[1]*I2 + cgamma[0]*I11 + cgamma[1]*I12 + cgamma[2]*I21 + cgamma[3]*I22 - beta[0]*S*J1 - beta[1]*S*J2 + d*M@S
+    eqS = r*(1 - S) + sgamma[0]*I1 + sgamma[1]*I2 + cgamma[0]*I11 + cgamma[1]*I12 + cgamma[2]*I21 + cgamma[3]*I22 - beta[0]*S*J1 - beta[1]*S*J2 + d*M@S 
     eqI1 = beta[0]*J1*S - (r + sgamma[0])*I1 - beta[0]*K[0]*I1*J1 - beta[1]*K[1]*I1*J2 + d*M@I1
     eqI2 = beta[1]*J2*S - (r + sgamma[1])*I2 - beta[0]*K[2]*I2*J1 - beta[1]*K[3]*I2*J2 + d*M@I2
     eqI11 = beta[0]*K[0]*I1*J1 - (r + cgamma[0])*I11 + d*M@I11
@@ -146,31 +146,39 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
 
 
 
-def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk,  K, p, q, M, d, epsilon):
+def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma, neutralk,  K, p, q, M, d, epsilon):
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
     m = r + neutralgamma
     measures = dict()
     R0 = neutralbeta/m
     measures['R_0'] = R0
-    solution = solve(system, tspan, v0, r, beta, sgamma, cgamma, K, p, q, M, d)
+    solution = solve(system, tspan, v0, r, b, sgamma, cgamma, K, p, q, M, d)
     measures['solution'] = solution
 
-    I1 = np.array([solution.T[2] + solution.T[6] + 0.5*(solution.T[8] + solution.T[10]), solution.T[3] + solution.T[7] + 0.5*(solution.T[9] + solution.T[11])])
-    I2 = np.array([solution.T[4] + solution.T[12] + 0.5*(solution.T[8] + solution.T[10]), solution.T[5] + solution.T[13] + 0.5*(solution.T[9] + solution.T[11])])
+    I1 = np.array([solution.T[2], solution.T[3]])
+    I2 = np.array([solution.T[4], solution.T[5]])
+    T = np.array([solution.T[2] + solution.T[4] + solution.T[6]  + solution.T[8] + solution.T[10] + solution.T[12], solution.T[3] + solution.T[5] + solution.T[7]  + solution.T[9] + solution.T[11] + solution.T[13]])
     I = I1 + I2
-    z1 = I1/I
-    z2 = I2/I
-    measures['T'] = I
+    D = T - I
+    z1 = np.array([solution.T[2] + solution.T[6] + 0.5*(solution.T[8] + solution.T[10]), solution.T[3] + solution.T[7] + 0.5*(solution.T[9] + solution.T[11])])/T
+    z2 = np.array([solution.T[4] + solution.T[12] + 0.5*(solution.T[8] + solution.T[10]), solution.T[5] + solution.T[13] + 0.5*(solution.T[9] + solution.T[11])])/T
+    measures['I'] = I
+    measures['S'] = [solution.T[0], solution.T[1]]
+    measures['T'] = T
+    measures['D'] = D
     measures['z1'] = z1
     measures['z2'] = z2
     
 
     #Theoritical equilibria
     TSstar = 1/R0
+    measures['TSstar'] = TSstar
     TTstar = 1 - TSstar
-
-    TIstar = TTstar/(1 + neutralk[0][0]*(R0 - 1))
+    measures['TTstar'] = TTstar
+    TIstar = TTstar/(1 + neutralk*(R0 - 1))
     TDstar = TTstar - TIstar
+    measures['TIstar'] = TIstar
+    measures['TDstar'] = TDstar
 
     Sstar = np.array([solution.T[0][-1], solution.T[1][-1]])
     I1star =  np.array([solution.T[2][-1], solution.T[3][-1]])
@@ -213,13 +221,13 @@ def analysis(system, tspan, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgam
     mu = Istar/Dstar
 
     #This needs to be done with b_i
-    lambda1_2 = theta1*(beta[0] -  beta[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[1] - p[2])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
-    lambda2_1 = theta1*(beta[1] - beta[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[2] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
+    lambda1_2 = theta1*(b[0] -  b[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
+    lambda2_1 = theta1*(b[1] - b[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
     measures['lambda1_2'] = lambda1_2
     measures['lambda2_1'] = lambda2_1
     #Include these parameters in the plots
 
-    measures['deltab'] = (beta[1] - beta[0])/(epsilon*neutralbeta)
+    measures['deltab'] = (b[1] - b[0])/(epsilon*neutralbeta)
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
 
 
@@ -248,12 +256,12 @@ def plot(sol, tspan):
     """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
     solution = sol['solution']
 
-    labels = ['S in 1', 'S in 2', 'I1 in 1', 'I1 in 2','I2 in 1','I2 in 2', 'I11 in 1', 'I11 in 2', 'I12 in 1', 'I12 in 2', 'I21 in 1', 'I21 in 2', 'I22 in 1', 'I22 in 2']
+    labels = ['S', 'S', 'I1', 'I1','I2','I2', 'I11', 'I11', 'I12', 'I12', 'I21', 'I21', 'I22', 'I22']
     
     #print(solution.t)
 
     
-    fig, ax = plt.subplots(2, 2, figsize = (10, 10))
+    fig, ax = plt.subplots(3, 2, figsize = (10, 10))
     #fig.subplots_adjust(wspace = 0.5)
     ax[1, 0].set_ylim([0, 1])
     ax[1, 1].set_ylim([0, 1])
@@ -265,21 +273,54 @@ def plot(sol, tspan):
     ax[1, 0].plot(tspan, sol['z2'][0], label = 'Strain 2')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 0], label = 'replicator strain 1')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 1], label = 'replicator strain 2')
-    print(sol['z1'][1])
+
     ax[1, 1].plot(tspan, sol['z1'][1], label = 'Strain 1')
     ax[1, 1].plot(tspan, sol['z2'][1], label = 'Strain 2')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 2], label = 'replicator solution 1')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 3], label = 'replicator solution 2')
     
     #ax[1, 1].stackplot(tspan, [sol['replicator_solution'][:, 1], sol['replicator_solution'][:, 3]], labels = ['Strain 1', 'Strain 2'])
+
+    ax[2, 0].plot(tspan, sol['S'][0], label = 'S')
+    ax[2, 0].plot(tspan, [sol['TSstar'][0] for t in tspan],'--', label = '$S^*$')
+    ax[2, 0].plot(tspan, sol['I'][0], label = 'I')
+    ax[2, 0].plot(tspan, [sol['TIstar'][0] for t in tspan],'--', label = '$I^*$')
+    ax[2, 0].plot(tspan, sol['D'][0], label = 'D')
+    ax[2, 0].plot(tspan, [sol['TDstar'][0] for t in tspan],'--', label = '$D^*$')
+    ax[2, 0].plot(tspan, sol['T'][0], label = 'T')
+    ax[2, 0].plot(tspan, [sol['TTstar'][0] for t in tspan],'--', label = '$T^*$')
+
+    ax[2, 1].plot(tspan, sol['S'][1], label = 'S')
+    ax[2, 1].plot(tspan, [sol['TSstar'][1] for t in tspan],'--', label = '$S^*$')
+    ax[2, 1].plot(tspan, sol['I'][1], label = 'I')
+    ax[2, 1].plot(tspan, [sol['TIstar'][1] for t in tspan],'--', label = '$I^*$')
+    ax[2, 1].plot(tspan, sol['D'][1], label = 'D')
+    ax[2, 1].plot(tspan, [sol['TDstar'][1] for t in tspan],'--', label = '$D^*$')
+    ax[2, 1].plot(tspan, sol['T'][1], label = 'T')
+    ax[2, 1].plot(tspan, [sol['TTstar'][1] for t in tspan],'--', label = '$T^*$')
+
+
+
     #Labeling everything
+    ax[0, 0].text(len(tspan)/2, 0.3, 'R0 = ' + str(sol['R_0'][0]), style='italic',
+        bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
+    ax[0, 1].text(len(tspan)/2, 0.3, 'R0 = ' + str(sol['R_0'][1]), style='italic',
+        bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
+    ax[1, 0].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(sol['lambda1_2'][0]) + '\n $\lambda_2^1$ =' + str(sol['lambda2_1'][0]), style='italic',
+        bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
+    ax[1, 1].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(sol['lambda1_2'][1]) + '\n $\lambda_2^1$ =' + str(sol['lambda2_1'][1]), style='italic',
+        bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
     for i in range(2):
         ax[0, i].set(xlabel="t")
         ax[1, i].set(xlabel=r"$\tau$")
-        for j in range(2):
-            ax[i, j].legend()
+        ax[i, 1].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
+        ax[2, 1].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
+
     ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
     ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
+
+    fig.suptitle('Two patch dynamics with mean R0 =' + str(sum(sol['R_0'])/2))
+
 
     return ax
 
