@@ -7,26 +7,18 @@ from animation import Animate
 
 
 
-def replicator(z, t, Theta, lambda1_2, lambda2_1, weight):
+def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d = 0):
     """Function for the replicator equation using the summarized parameters."""
     #lambda1_2 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
     #lambda2_1 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
-    Z = np.zeros((2,2))                 #This is going to be a matrix where collumns are patches and rows are strains.
-    Z[0, 0] = z[0]
-    Z[0, 1] = z[1]
-    Z[1, 0] = z[2]
-    Z[1, 1] = z[3]
-    Z[1, 0] = 1 - Z[0, 0]
     
-    Z[0, 1] = 1 - Z[1, 1]
-    Lambdas = [np.array([[0, lambda1_2[0]],[lambda2_1[0], 0]]), np.array([[0, lambda1_2[1]],[lambda2_1[1], 0]])]
+    #Lambdas = [np.array([[0, lambda1_2[0]],[lambda2_1[0], 0]]), np.array([[0, lambda1_2[1]],[lambda2_1[1], 0]])]
 
 
     eqlist = []
     #Order of equations is: z11, z12, z21, z22. So i is refering to the strain and j is refering to the patch.
-    for i in range(2):
-        for j in range(2):
-            eqlist.append(Theta[j]*Z[i, j]*((Lambdas[j]@Z[:,j])[i] - np.transpose(Z[:, j])@Lambdas[j]@Z[:, j]) + (weight[j]-1)*(Z[i, (j+1)%2] - Z[i, j]))
+    for j in range(2):
+        eqlist.append(Theta[j]*z[j]*((lambda1_2[j]*(1 - z[j])) - (lambda1_2[j]+lambda2_1[j])*(z[j]*(1-z[j]))) + (d > 0)*(w[j]-1)*(z[(j+1)%2] - z[j]))
 
     return eqlist
 
@@ -70,6 +62,7 @@ def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
     d: diffusion
     The ordering of the (i, j)'s should always be 11, 12, 21, 22.
     """
+    print(beta)
     n = int(len(v)/7)  #There's always 7 infection classes: S, I1, I2, I11, I12, I21, I22
     S = v[:n]
     I1 = v[n:2*n]
@@ -78,7 +71,7 @@ def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
     I12 = v[4*n:5*n]
     I21 = v[5*n:6*n]
     I22 = v[6*n:]
-    J1 = I1 + 1*I11  + p*I12 + q*I21    #I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21    
+    J1 = I1 + 1*I11  + p*I12 + q*I21       #I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21    
     J2 = I2 + 1*I22 + (1-p)*I12 +(1-q)*I21 #I2 + q[2]*I21 + p[2]*I12 + q[3]*I22 + p[3]*I22
     eqS = r*(1 - S) + sgamma[0]*I1 + sgamma[1]*I2 + cgamma[0]*I11 + cgamma[1]*I12 + cgamma[2]*I21 + cgamma[3]*I22 - beta[0]*S*J1 - beta[1]*S*J2 + d*M@S 
     eqI1 = beta[0]*J1*S - (r + sgamma[0])*I1 - beta[0]*K[0]*I1*J1 - beta[1]*K[1]*I1*J2 + d*M@I1
@@ -196,6 +189,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     Tstar = I1star + I2star + I11star + I12star + I21star + I22star
     Istar = I1star + I2star
     Dstar = Tstar - Istar
+    measures['Sstar'] = Sstar
     measures['Tstar'] = Tstar
     measures['Istar'] = Istar
     measures['Dstar'] = Dstar
@@ -221,7 +215,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     mu = Istar/Dstar
 
     #This needs to be done with b_i
-    lambda1_2 = theta1*(b[0] -  b[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
+    lambda1_2 = theta1*(b[0] -  b[1])/(epsilon*neutralbeta) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
     lambda2_1 = theta1*(b[1] - b[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
     measures['lambda1_2'] = lambda1_2
     measures['lambda2_1'] = lambda2_1
@@ -231,11 +225,11 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
 
 
-    weight = np.array([1/detP[0]*(-TDstar[0]*(TIstar[1]-TIstar[0]) + 2*TTstar[0]*(TTstar[1]- TTstar[0])) , 1/detP[1]*(-TDstar[1]*(TIstar[0]-TIstar[1]) + 2*TTstar[1]*(TTstar[0]- TTstar[1])) ])
-    measures['weight'] = weight
+    w = np.array([1/detP[0]*(-TDstar[0]*(TIstar[1]-TIstar[0]) + 2*TTstar[0]*(TTstar[1]- TTstar[0])) , 1/detP[1]*(-TDstar[1]*(TIstar[0]-TIstar[1]) + 2*TTstar[1]*(TTstar[0]- TTstar[1])) ])
+    measures['w'] = w
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
 
-    measures['replicator_solution'], info = integrate.odeint(replicator, [z1[0][0], z1[1][0], z2[0][0], z2[1][0]], tspan, args = (Theta, lambda1_2, lambda2_1, weight), full_output=True)
+    measures['replicator_solution'], info = integrate.odeint(replicator, [z1[0][0], z1[1][0]], tspan, args = (Theta, lambda1_2, lambda2_1, w), full_output=True)
 
     #print(measures['replicator_solution'])
     #[z1[0], z1[1], 1 - z1[0], 1 - z1[1]]
@@ -270,12 +264,16 @@ def plot(sol, tspan):
         ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
         ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
     ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
+    ax[1, 0].plot(tspan, sol['replicator_solution'].T[0], '--', label = 'replicator z1')
     ax[1, 0].plot(tspan, sol['z2'][0], label = 'Strain 2')
+    #ax[1, 0].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 0], label = 'replicator strain 1')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 1], label = 'replicator strain 2')
 
-    ax[1, 1].plot(tspan, sol['z1'][1], label = 'Strain 1')
-    ax[1, 1].plot(tspan, sol['z2'][1], label = 'Strain 2')
+    #ax[1, 1].plot(tspan, sol['z1'][1], label = 'Strain 1')
+    ax[1, 1].plot(tspan, sol['replicator_solution'].T[1], '--', label = 'replicator z1')
+    #ax[1, 1].plot(tspan, sol['z2'][1], label = 'Strain 2')
+    #ax[1, 1].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 2], label = 'replicator solution 1')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 3], label = 'replicator solution 2')
     

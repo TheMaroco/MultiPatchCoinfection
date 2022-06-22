@@ -38,7 +38,7 @@ class patch:
         self.lambda1_2 = 0
         self.lambda2_1 = 0
     
-    def define_b(self, b = [0, 0]):
+    def define_beta(self, b = [0, 0]):
         """Function to generate the non-neutral betas. bi is the strain specific reproduction rates."""
         #To generalize this to more strains -> make bi be a higher dimensional vector, use a for (over i in range(len(bi))) and append with the formula nbeta*(1 + epsilon*bi[i])
         self.b = np.array([self.nbeta*(1 + self.epsilon*b[0]), self.nbeta*(1 + self.epsilon*b[1])])
@@ -181,11 +181,7 @@ class metaPopulation:
 
 
 
-M = np.array([[-1, 1, 1], [1, -1, 1], [1, 1, 1]])
-patch1 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 4, 2, 1, 0.1)
-patch1.define_b([0.2, 0.4])
-patch2 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1)
-patch3 = patch('A', [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1)
+
 
 
 
