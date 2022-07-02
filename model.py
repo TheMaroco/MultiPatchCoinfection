@@ -62,7 +62,7 @@ def system(v, tspan, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
     d: diffusion
     The ordering of the (i, j)'s should always be 11, 12, 21, 22.
     """
-    print(beta)
+    
     n = int(len(v)/7)  #There's always 7 infection classes: S, I1, I2, I11, I12, I21, I22
     S = v[:n]
     I1 = v[n:2*n]
@@ -105,39 +105,6 @@ def solve(system, t, v0, r, beta, sgamma, cgamma, K, p, q, M, d = 0):
     return integrate.odeint(system, v0, t, args = (r, beta, sgamma, cgamma, K, p, q, M,  d))
 
 
-#Two patch parameters
-# epsilon = 0.1
-# tspan = np.linspace(0, 20, 100)
-# dt = tspan[1] - tspan[0]
-# tau = tspan*epsilon
-# v0 = [0.7, 0.7, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-# N = sum(v0)
-# r = np.array([1.2, 1.2])
-# neutralbeta = 5
-# neutralgamma = 1.3
-# neutralk = 1
-# beta = [neutralbeta*np.array([1 + epsilon*1.6, 1 + epsilon*1.8]), neutralbeta*np.array([1+epsilon*2, 1 + epsilon*1.9])]
-# sgamma = [neutralgamma*np.array([1 + epsilon*0.8, 1 + epsilon*0.7]), neutralgamma*np.array([1 + epsilon*0.7, 1 + epsilon*0.6])]
-# cgamma = [neutralgamma*np.array([1 + epsilon*0.8,1 + epsilon*0.6]), neutralgamma*np.array([1+ epsilon*0.5, 1 + epsilon*1.4]), neutralgamma*np.array([1 + epsilon*1.2, 1 + epsilon*0.6]), neutralgamma*np.array([1 + epsilon*1.4, 1 + epsilon*1.2])]
-# K = [neutralk*np.array([1+ epsilon*2,1 + epsilon*1.2]), neutralk*np.array([1 + epsilon*1.1, 1 + epsilon*0.8]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.6]), neutralk*np.array([1 + epsilon*1.4, 1 + epsilon*1.3])]
-# p = [np.array([1, 1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
-# q = [np.array([1,1]), np.array([0.5+epsilon*0.7, 0.5+epsilon*0.8]), np.array([0.5+epsilon*0.3, 0.5+epsilon*0.2]), np.array([1, 1])]
-# d = 0
-
-
-# #Three Patch Parameters
-# v03 = [70, 70, 70, 10, 10, 10, 10, 10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-# N = sum(v0)
-# r3 =np.array([1, 1.2, 0.8])
-# beta3 = [np.array([1.1, 1.2, 1.5]), np.array([1.2, 1.3, 1.4])]
-# sgamma3 = [np.array([0.8, 0.7, 1]), np.array([0.7, 0.6, 1.1])]
-# cgamma3 = [np.array([1,0.6, 1.2]), np.array([1, 0.4, 1.5]), np.array([1.2, 0.6, 0.9]), np.array([1.4, 1.2, 1.2])]
-# K3 = [np.array([1,1.2, 1]), np.array([1.1, 0.8, 0.9]), np.array([1.4, 1.6, 1.2]), np.array([1.4, 1.3, 1.2])]
-# p3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
-# q3 = [np.array([1,1, 1]), np.array([0.7, 0.8, 0.5]), np.array([0.3, 0.2, 0.5]), np.array([1, 1, 1])]
-
-
-
 
 def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma, neutralk,  K, p, q, M, d, epsilon):
     """Function to perform the analysis of the model. Inputs are initial conditions and parameters of the model and an option to plot."""
@@ -145,6 +112,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures = dict()
     R0 = neutralbeta/m
     measures['R_0'] = R0
+    measures['epsilon'] = epsilon
     solution = solve(system, tspan, v0, r, b, sgamma, cgamma, K, p, q, M, d)
     measures['solution'] = solution
 
@@ -213,13 +181,13 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     theta4 = Theta4/Theta
     theta5 = Theta5/Theta
     mu = Istar/Dstar
+    measures['mu'] = mu
 
     #This needs to be done with b_i
-    lambda1_2 = theta1*(b[0] -  b[1])/(epsilon*neutralbeta) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
+    lambda1_2 = theta1*(b[0] -  b[1]) + theta2*(sgamma[0] - sgamma[1]) + theta3*(-cgamma[1] - cgamma[2] + 2*cgamma[3]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[2] - K[1]) + K[2] - K[3])
     lambda2_1 = theta1*(b[1] - b[0]) + theta2*(sgamma[1] - sgamma[0]) + theta3*(-cgamma[2] - cgamma[1] + 2*cgamma[0]) + theta4*((q[0] - p[1])/epsilon) + theta5*(mu*(K[1] - K[2]) + K[1] - K[0])
     measures['lambda1_2'] = lambda1_2
     measures['lambda2_1'] = lambda2_1
-    #Include these parameters in the plots
 
     measures['deltab'] = (b[1] - b[0])/(epsilon*neutralbeta)
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
@@ -229,34 +197,29 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['w'] = w
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
 
-    measures['replicator_solution'], info = integrate.odeint(replicator, [z1[0][0], z1[1][0]], tspan, args = (Theta, lambda1_2, lambda2_1, w), full_output=True)
 
-    #print(measures['replicator_solution'])
-    #[z1[0], z1[1], 1 - z1[0], 1 - z1[1]]
+    repli, info = integrate.odeint(replicator, [z1[0][0], z1[1][0]], epsilon*tspan, args = (Theta, lambda1_2, lambda2_1, w), full_output=True)
+    measures['replicator_solution'] = repli
 
+    
+    measures['error'] = np.linalg.norm(I[0]*repli.T[0] - I1[0]) #+ np.linalg.norm(I[1]*repli.T[0] - I1[1]))/2
     
 
     return measures
 
 
 
-# sol = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
-# print(sol['replicator_solution'][0][-1] + sol['replicator_solution'][1][-1] + sol['replicator_solution'][2][-1] + sol['replicator_solution'][3][-1])
-# print(sol['z1'] + sol['z2'])
-# print('R_0 is:', sol['R_0'])
-# print('Lambdas')
-# print(sol['lambda1_2'], sol['lambda2_1'])
 def plot(sol, tspan):
     """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
     solution = sol['solution']
 
     labels = ['S', 'S', 'I1', 'I1','I2','I2', 'I11', 'I11', 'I12', 'I12', 'I21', 'I21', 'I22', 'I22']
     
-    #print(solution.t)
+
 
     
     fig, ax = plt.subplots(3, 2, figsize = (10, 10))
-    #fig.subplots_adjust(wspace = 0.5)
+
     ax[1, 0].set_ylim([0, 1])
     ax[1, 1].set_ylim([0, 1])
 
@@ -265,48 +228,48 @@ def plot(sol, tspan):
         ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
     ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
     ax[1, 0].plot(tspan, sol['replicator_solution'].T[0], '--', label = 'replicator z1')
-    ax[1, 0].plot(tspan, sol['z2'][0], label = 'Strain 2')
+    #ax[1, 0].plot(tspan, sol['z2'][0], label = 'Strain 2')
     #ax[1, 0].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 0], label = 'replicator strain 1')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 1], label = 'replicator strain 2')
 
-    #ax[1, 1].plot(tspan, sol['z1'][1], label = 'Strain 1')
+    ax[1, 1].plot(tspan, sol['z1'][1], label = 'Strain 1')
     ax[1, 1].plot(tspan, sol['replicator_solution'].T[1], '--', label = 'replicator z1')
     #ax[1, 1].plot(tspan, sol['z2'][1], label = 'Strain 2')
     #ax[1, 1].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 2], label = 'replicator solution 1')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 3], label = 'replicator solution 2')
     
-    #ax[1, 1].stackplot(tspan, [sol['replicator_solution'][:, 1], sol['replicator_solution'][:, 3]], labels = ['Strain 1', 'Strain 2'])
+    
 
-    ax[2, 0].plot(tspan, sol['S'][0], label = 'S')
-    ax[2, 0].plot(tspan, [sol['TSstar'][0] for t in tspan],'--', label = '$S^*$')
-    ax[2, 0].plot(tspan, sol['I'][0], label = 'I')
-    ax[2, 0].plot(tspan, [sol['TIstar'][0] for t in tspan],'--', label = '$I^*$')
-    ax[2, 0].plot(tspan, sol['D'][0], label = 'D')
-    ax[2, 0].plot(tspan, [sol['TDstar'][0] for t in tspan],'--', label = '$D^*$')
-    ax[2, 0].plot(tspan, sol['T'][0], label = 'T')
-    ax[2, 0].plot(tspan, [sol['TTstar'][0] for t in tspan],'--', label = '$T^*$')
+    ax[2, 0].plot(tspan, sol['S'][0], label = 'S', color = 'blue')
+    ax[2, 0].plot(tspan, [sol['TSstar'][0] for t in tspan],'--', label = '$S^*$', color = 'blue')
+    ax[2, 0].plot(tspan, sol['I'][0], label = 'I', color = 'red')
+    ax[2, 0].plot(tspan, [sol['TIstar'][0] for t in tspan],'--', label = '$I^*$', color = 'red')
+    ax[2, 0].plot(tspan, sol['D'][0], label = 'D', color = 'orange')
+    ax[2, 0].plot(tspan, [sol['TDstar'][0] for t in tspan],'--', label = '$D^*$', color = 'orange')
+    ax[2, 0].plot(tspan, sol['T'][0], label = 'T', color = 'purple')
+    ax[2, 0].plot(tspan, [sol['TTstar'][0] for t in tspan],'--', label = '$T^*$', color = 'purple')
 
-    ax[2, 1].plot(tspan, sol['S'][1], label = 'S')
-    ax[2, 1].plot(tspan, [sol['TSstar'][1] for t in tspan],'--', label = '$S^*$')
-    ax[2, 1].plot(tspan, sol['I'][1], label = 'I')
-    ax[2, 1].plot(tspan, [sol['TIstar'][1] for t in tspan],'--', label = '$I^*$')
-    ax[2, 1].plot(tspan, sol['D'][1], label = 'D')
-    ax[2, 1].plot(tspan, [sol['TDstar'][1] for t in tspan],'--', label = '$D^*$')
-    ax[2, 1].plot(tspan, sol['T'][1], label = 'T')
-    ax[2, 1].plot(tspan, [sol['TTstar'][1] for t in tspan],'--', label = '$T^*$')
+    ax[2, 1].plot(tspan, sol['S'][1], label = 'S', color = 'blue')
+    ax[2, 1].plot(tspan, [sol['TSstar'][1] for t in tspan],'--', label = '$S^*$', color = 'blue')
+    ax[2, 1].plot(tspan, sol['I'][1], label = 'I', color = 'red')
+    ax[2, 1].plot(tspan, [sol['TIstar'][1] for t in tspan],'--', label = '$I^*$', color = 'red')
+    ax[2, 1].plot(tspan, sol['D'][1], label = 'D',  color = 'orange')
+    ax[2, 1].plot(tspan, [sol['TDstar'][1] for t in tspan],'--', label = '$D^*$',  color = 'orange')
+    ax[2, 1].plot(tspan, sol['T'][1], label = 'T', color = 'purple')
+    ax[2, 1].plot(tspan, [sol['TTstar'][1] for t in tspan],'--', label = '$T^*$', color = 'purple')
 
 
 
     #Labeling everything
-    ax[0, 0].text(len(tspan)/2, 0.3, 'R0 = ' + str(sol['R_0'][0]), style='italic',
+    ax[0, 0].text(91, 0.455, 'R0 = ' + str(round(sol['R_0'][0], 3)), style='italic',
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
-    ax[0, 1].text(len(tspan)/2, 0.3, 'R0 = ' + str(sol['R_0'][1]), style='italic',
+    ax[0, 1].text(86, 0.5, 'R0 = ' + str(round(sol['R_0'][1], 3)), style='italic',
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
-    ax[1, 0].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(sol['lambda1_2'][0]) + '\n $\lambda_2^1$ =' + str(sol['lambda2_1'][0]), style='italic',
+    ax[1, 0].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(round(sol['lambda1_2'][0], 3)) + '\n $\lambda_2^1$ =' + str(round(sol['lambda2_1'][0], 3)), style='italic',
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
-    ax[1, 1].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(sol['lambda1_2'][1]) + '\n $\lambda_2^1$ =' + str(sol['lambda2_1'][1]), style='italic',
+    ax[1, 1].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(round(sol['lambda1_2'][1], 3)) + '\n $\lambda_2^1$ =' + str(round(sol['lambda2_1'][1], 3)), style='italic',
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
     for i in range(2):
         ax[0, i].set(xlabel="t")
@@ -317,49 +280,10 @@ def plot(sol, tspan):
     ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
     ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
 
-    fig.suptitle('Two patch dynamics with mean R0 =' + str(sum(sol['R_0'])/2))
+    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ' and $\epsilon$ =' + str(sol['epsilon']))
 
 
     return ax
 
 
-
-# print('Total infection is:', sol['T'])
-# plot(sol)
-# plt.show()
-
-
-
-
-# ds = np.linspace(0, epsilon, 30)
-# sols = []
-# zs1 = []
-# zs2 = []
-# p1lambda1_2s = []
-# p1lambda2_1s = []
-# for d in ds:
-#     s = analysis(system, v0, r, neutralbeta, beta, neutralgamma, sgamma, cgamma, neutralk, K, p, q, d, epsilon)
-#     sols.append(s)
-#     zs1.append(s['replicator_solution'][0][-1])  #Now looking at solution from the replicator
-#     zs2.append(s['replicator_solution'][1][-1])
-#     p1lambda1_2s.append(s['lambda1_2'])
-#     p1lambda2_1s.append(s['lambda2_1'])
-
-# Animate(t, tau, ds, sols)
-# # test = [analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda1_2'], analysis(system, v0, r, beta, sgamma, cgamma, K, p, q, d, 0.1)['lambda2_1']]
-# # print(test[0] - test[1])
-
-# animate(ds, zs1, zs2, ['d', 'z1'], ['z1 of first patch', 'z1 of second patch'])
-
-# plt.show()
-
-
-# plt.stackplot(ds, zs1, label = 'z1 of first patch')
-# #plt.plot(ds, zs2, label = 'z1 of second patch')
-# plt.title('Variation of z as function of diffusion')
-# plt.xlabel('d')
-# plt.ylabel('z1')
-
-# plt.legend()
-# plt.show()
 

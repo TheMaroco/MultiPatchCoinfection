@@ -14,7 +14,7 @@ class patch:
         self.v = np.array(v0)
         self.r = np.array(r)
         self.nbeta = np.array(neutralbeta)
-        self.b = self.nbeta*np.ones(4)
+        self.b = self.nbeta*np.ones(2)
         self.ngamma = np.array(neutralgamma)
         self.sgamma = self.ngamma*np.ones(2)
         self.cgamma = self.ngamma*np.ones(4)
@@ -65,8 +65,8 @@ class patch:
         return self.q
 
     def invasion_fitness(self):
-        self.lambda1_2 = self.theta1*(self.beta[0] - self.beta[1]) + self.theta2*(-self.sgamma[0] + self.sgamma[1]) + self.theta3*(-self.cgamma[1] - self.cgamma[2] + self.cgamma[3]) + self.theta4*(self.p[1] - self.p[2]) + self.theta5*(self.mu*(self.K[2] - self.K[1]) + self.K[2] - self.K[3])
-        self.lambda2_1 = self.theta1*(self.beta[1] - self.beta[0]) + self.theta2*(-self.sgamma[1] + self.sgamma[0]) + self.theta3*(-self.cgamma[2] - self.cgamma[1] + self.cgamma[0]) + self.theta4*(self.p[2] - self.p[1]) + self.theta5*(self.mu*(self.K[1] - self.K[2]) + self.K[1] - self.K[0])
+        self.lambda1_2 = self.theta1*(self.b[0] - self.b[1]) + self.theta2*(-self.sgamma[0] + self.sgamma[1]) + self.theta3*(-self.cgamma[1] - self.cgamma[2] + 2*self.cgamma[3]) + self.theta4*(self.q - self.p) + self.theta5*(self.mu*(self.K[2] - self.K[1]) + self.K[2] - self.K[3])
+        self.lambda2_1 = self.theta1*(self.b[1] - self.b[0]) + self.theta2*(-self.sgamma[1] + self.sgamma[0]) + self.theta3*(-self.cgamma[2] - self.cgamma[1] + 2*self.cgamma[0]) + self.theta4*(self.p - self.q) + self.theta5*(self.mu*(self.K[1] - self.K[2]) + self.K[1] - self.K[0])
         return self.lambda1_2, self.lambda2_1
 
     def neutralmodel(self, t):
@@ -170,6 +170,10 @@ class metaPopulation:
         self.R0s = R0s
 
 
+        self.lambda1_2 = [patches[i].invasion_fitness()[0] for i in range(n)]
+        self.lambda2_1 = [patches[i].invasion_fitness()[1] for i in range(n)] 
+
+
     def solution(self, tspan):
         return solve(system, tspan, self.v0, self.r, self.beta, self.sgamma, self.cgamma, self.K, self.p, self.q, self.d, self.M)
 
@@ -178,6 +182,10 @@ class metaPopulation:
 
     def meanR0(self):
         return np.mean(self.R0s)
+
+    def meanInvasionfitness(self):
+        return np.mean(self.lambda1_2), np.mean(self.lambda2_1)
+
 
 
 
