@@ -57,7 +57,7 @@ class patch:
         self.K = np.array([self.nk + self.epsilon*alpha[0], self.nk + self.epsilon*alpha[1], self.nk + self.epsilon*alpha[2], self.nk + self.epsilon*alpha[3] ])
         return self.K
 
-    def define_p(self, p = 0):   #CHANGE THIS
+    def define_p(self, p = 0):  
         self.p = 0.5 + self.epsilon*p
         return self.p
     def define_q(self, q = 0):

@@ -35,7 +35,7 @@ print('Average lambda1_2', metapop.meanInvasionfitness()[0])
 print('Average lambda2_1', metapop.meanInvasionfitness()[1])
 print('w:', metapop.measures(t)['w'])
 
-print(metapop.measures(t)['error'])
+print('error in the approximation:', metapop.measures(t)['error'])
 
 plot(metapop.measures(t), t)
 plt.show()
