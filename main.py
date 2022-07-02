@@ -20,11 +20,15 @@ patch1.define_beta(b)
 #alpha = [0.1, 0.4, 0.3, 0.1]
 #patch1.define_K(alpha)
 
-patch2 = patch('B', initial_conditions2, 1, neutralbeta = 5, neutralgamma = 2, neutralk = 0.1, epsilon = epsilon)
+patch2 = patch('B', initial_conditions2, 1, neutralbeta = 5, neutralgamma = 2, neutralk = 1, epsilon = epsilon)
 b = [0.1, 0.1]
 patch2.define_beta(b)
 #alpha = [0.1, 0.5, 0.5, 0.1]
 #patch2.define_K(alpha)
+
+
+patch1.describe()
+patch2.describe()
 
 patches = [patch1, patch2]
 metapop = metaPopulation(patches, d, M)

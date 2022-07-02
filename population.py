@@ -75,6 +75,7 @@ class patch:
     
     def describe(self, option = 'parameters'):
         """Function to describe the patch. Option decides things to be described."""
+        print('---------------------------------------------------------------------------')
         if option == 'parameters':
             print('Summary of patch', self.name, 'parameteres:')
             print('Strain reproduction rates:', self.b)
@@ -94,6 +95,8 @@ class patch:
         if option == 'invasion fitness':
             print('Invasion fitness of 1 -> 2:', self.lambda1_2)
             print('Invasion fitness of 2 -> 1:', self.lambda2_1)
+
+        print('---------------------------------------------------------------------------')
         pass
 
 
