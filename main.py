@@ -32,8 +32,8 @@ patch2.describe()
 
 patches = [patch1, patch2]
 metapop = metaPopulation(patches, d, M)
-print('Patch 1 R0:', patch1.R0)
-print('Patch 2 R0:', patch2.R0)
+print('Patch A R0:', patch1.R0)
+print('Patch B R0:', patch2.R0)
 print('Average R0', metapop.meanR0())
 print('Average lambda1_2', metapop.meanInvasionfitness()[0])
 print('Average lambda2_1', metapop.meanInvasionfitness()[1])
