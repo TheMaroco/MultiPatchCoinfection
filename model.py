@@ -18,7 +18,7 @@ def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d):
     eqlist = []
     #Order of equations is: z11, z12. So i is refering to the strain and j is refering to the patch.
     for j in range(2):
-        eqlist.append(Theta[j]*z[j]*((lambda1_2[j]*(1 - z[j])) - (lambda1_2[j]+lambda2_1[j])*(z[j]*(1-z[j]))) + (d > 0)*(w[j]-1)*(z[(j+1)%2] - z[j]))
+        eqlist.append(Theta[j]*z[j]*((lambda1_2[j]*(1 - z[j])) - (lambda1_2[j]+lambda2_1[j])*(z[j]*(1-z[j]))) + (d > 0)*(w[j]-1)*(z[(j+1)%2] - z[j])) #Approximation is better with a - 
 
     return eqlist
 
@@ -115,7 +115,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['epsilon'] = epsilon
     solution = solve(system, tspan, v0, r, b, sgamma, cgamma, K, p, q, M, d)
     measures['solution'] = solution
-
+    measures['d'] = d
     I1 = np.array([solution.T[2], solution.T[3]])
     I2 = np.array([solution.T[4], solution.T[5]])
     T = np.array([solution.T[2] + solution.T[4] + solution.T[6]  + solution.T[8] + solution.T[10] + solution.T[12], solution.T[3] + solution.T[5] + solution.T[7]  + solution.T[9] + solution.T[11] + solution.T[13]])
@@ -280,7 +280,14 @@ def plot(sol, tspan):
     ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
     ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
 
-    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ' and $\epsilon$ =' + str(sol['epsilon']))
+    if sol['d'] == sol['epsilon']:
+        diff = 'slow diffusion'
+    elif sol['d'] == 1/sol['epsilon']:
+        diff = 'fast diffusion'
+    else:
+        diff = 'no diffusion'
+
+    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ', $\epsilon$ =' + str(sol['epsilon']) + ' and ' + diff)
 
 
     return ax
