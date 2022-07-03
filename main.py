@@ -9,7 +9,7 @@ initial_conditions2 = [0.4, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0]
 neutral_r = 1
 neutral_beta = 6
 
-epsilon = 0.01
+epsilon = 0.1
 d = epsilon
 M = np.array([[-1, 1], [1, -1]])
 patch1 = patch('A', initial_conditions1, 1, neutralbeta = 6, neutralgamma = 2, neutralk = 1, epsilon = epsilon)
@@ -40,6 +40,7 @@ print('Average lambda2_1', metapop.meanInvasionfitness()[1])
 print('w:', metapop.measures(t)['w'])
 
 print('error in the approximation:', metapop.measures(t)['error'])
+
 
 plot(metapop.measures(t), t)
 plt.show()

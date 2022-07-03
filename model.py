@@ -7,7 +7,7 @@ from animation import Animate
 
 
 
-def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d = 0):
+def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d):
     """Function for the replicator equation using the summarized parameters."""
     #lambda1_2 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
     #lambda2_1 = theta1(b2 - b1) + theta2(-nu2 + nu1) + theta3*(-u21 - u12 + u11) + theta4(omega2_21 - omega1_12) + theta5*(mu(alpha12 - alpha21) + alpha12 - alpha11)
@@ -16,7 +16,7 @@ def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d = 0):
 
 
     eqlist = []
-    #Order of equations is: z11, z12, z21, z22. So i is refering to the strain and j is refering to the patch.
+    #Order of equations is: z11, z12. So i is refering to the strain and j is refering to the patch.
     for j in range(2):
         eqlist.append(Theta[j]*z[j]*((lambda1_2[j]*(1 - z[j])) - (lambda1_2[j]+lambda2_1[j])*(z[j]*(1-z[j]))) + (d > 0)*(w[j]-1)*(z[(j+1)%2] - z[j]))
 
@@ -198,7 +198,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
 
 
-    repli, info = integrate.odeint(replicator, [z1[0][0], z1[1][0]], epsilon*tspan, args = (Theta, lambda1_2, lambda2_1, w), full_output=True)
+    repli, info = integrate.odeint(replicator, [z1[0][0], z1[1][0]], epsilon*tspan, args = (Theta, lambda1_2, lambda2_1, w, d), full_output=True)
     measures['replicator_solution'] = repli
 
     
