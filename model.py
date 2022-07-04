@@ -118,13 +118,15 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['d'] = d
     I1 = np.array([solution.T[2], solution.T[3]])
     I2 = np.array([solution.T[4], solution.T[5]])
+    measures['I1'] = I1
     T = np.array([solution.T[2] + solution.T[4] + solution.T[6]  + solution.T[8] + solution.T[10] + solution.T[12], solution.T[3] + solution.T[5] + solution.T[7]  + solution.T[9] + solution.T[11] + solution.T[13]])
     I = I1 + I2
-    D = T - I
+    D = np.array([solution.T[6]  + solution.T[8] + solution.T[10] + solution.T[12],solution.T[7]  + solution.T[9] + solution.T[11] + solution.T[13]])
     z1 = np.array([solution.T[2] + solution.T[6] + 0.5*(solution.T[8] + solution.T[10]), solution.T[3] + solution.T[7] + 0.5*(solution.T[9] + solution.T[11])])/T
     z2 = np.array([solution.T[4] + solution.T[12] + 0.5*(solution.T[8] + solution.T[10]), solution.T[5] + solution.T[13] + 0.5*(solution.T[9] + solution.T[11])])/T
     measures['I'] = I
     measures['S'] = [solution.T[0], solution.T[1]]
+
     measures['T'] = T
     measures['D'] = D
     measures['z1'] = z1
@@ -202,7 +204,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['replicator_solution'] = repli
 
     
-    measures['error'] = np.linalg.norm(I[0]*repli.T[0] - I1[0]) #+ np.linalg.norm(I[1]*repli.T[0] - I1[1]))/2
+    measures['error'] = np.linalg.norm(TIstar[0]*repli.T[0] - I1[0]) + np.linalg.norm(TIstar[0]*(1 - repli.T[0]) - I2[1]) 
     
 
     return measures
@@ -223,11 +225,13 @@ def plot(sol, tspan):
     ax[1, 0].set_ylim([0, 1])
     ax[1, 1].set_ylim([0, 1])
 
+    
     for i in range(7):
         ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
         ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
-    ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
-    ax[1, 0].plot(tspan, sol['replicator_solution'].T[0], '--', label = 'replicator z1')
+    #ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
+    ax[1, 0].plot(tspan, sol['replicator_solution'].T[0]*sol['I'][0], '--', label = 'replicator z1')
+    ax[1, 0].plot(tspan, sol['I1'][0], label = 'I1')
     #ax[1, 0].plot(tspan, sol['z2'][0], label = 'Strain 2')
     #ax[1, 0].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 0], label = 'replicator strain 1')
