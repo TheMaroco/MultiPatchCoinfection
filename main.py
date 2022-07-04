@@ -10,21 +10,21 @@ neutral_r = 1
 neutral_beta = 6
 
 epsilon = 0.05
-d = 0
+d = 1
 M = np.array([[-1, 1], [1, -1]])
 patch1 = patch('A', initial_conditions1, 1, neutralbeta = 6, neutralgamma = 2, neutralk = 0.5, epsilon = epsilon)
-b = [0.1, 0.1]
+b = [0.1, 0.4]
 patch1.define_beta(b) 
 #patch1.define_sgamma([5, 0.8])
 #patch1.define_cgamma([0.3,0.1,0.2,0.1])
-alpha = [0.1, 0.4, 0.3, 0.1]
-patch1.define_K(alpha)
+#alpha = [0.1, 0.4, 0.3, 0.1]
+#patch1.define_K(alpha)
 
 patch2 = patch('B', initial_conditions2, 1, neutralbeta = 6, neutralgamma = 2, neutralk = 0.5, epsilon = epsilon)
-b = [0.1, 0.1]
+b = [0.1, 0.6]
 patch2.define_beta(b)
-alpha = [0.1, 0.5, 0.5, 0.1]
-patch2.define_K(alpha)
+#alpha = [0.1, 0.5, 0.5, 0.1]
+#patch2.define_K(alpha)
 
 
 patch1.describe()

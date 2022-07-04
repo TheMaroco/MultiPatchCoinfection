@@ -18,7 +18,7 @@ def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d):
     eqlist = []
     #Order of equations is: z11, z12. So i is refering to the strain and j is refering to the patch.
     for j in range(2):
-        eqlist.append(Theta[j]*z[j]*((lambda1_2[j]*(1 - z[j])) - (lambda1_2[j]+lambda2_1[j])*(z[j]*(1-z[j]))) + (d > 0)*(w[j]-1)*(z[(j+1)%2] - z[j])) #Approximation is better with a - 
+        eqlist.append(Theta[j]*z[j]*((lambda1_2[j]*(1 - z[j])) - (lambda1_2[j]+lambda2_1[j])*(z[j]*(1-z[j]))) - (d > 0)*(w[j]-1)*(z[(j+1)%2] - z[j])) #Approximation is better with a - 
 
     return eqlist
 
@@ -195,7 +195,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['deltanu'] = (sgamma[1]- sgamma[0])/(epsilon*neutralgamma)
 
 
-    w = np.array([1/detP[0]*(-TDstar[0]*(TIstar[1]-TIstar[0]) + 2*TTstar[0]*(TTstar[1]- TTstar[0])) , 1/detP[1]*(-TDstar[1]*(TIstar[0]-TIstar[1]) + 2*TTstar[1]*(TTstar[0]- TTstar[1])) ])
+    w = np.array([1/detP[0]*(-TDstar[0]*(TIstar[1]-TIstar[0]) + 2*TTstar[0]*(TTstar[1] - TTstar[0])) , 1/detP[1]*(-TDstar[1]*(TIstar[0]-TIstar[1]) + 2*TTstar[1]*(TTstar[0]- TTstar[1])) ])
     measures['w'] = w
     z0 = np.array([(v0[2] + v0[6] + 0.5*v0[8] + 0.5*v0[10])/(v0[2] + v0[4] + v0[6] + v0[8] + v0[10] + v0[12]), (v0[3] + v0[5] + 0.5*v0[9] + 0.5*v0[11])/(v0[3] + v0[5] + v0[7] + v0[9] + v0[11] + v0[13])])
 
@@ -229,9 +229,9 @@ def plot(sol, tspan):
     for i in range(7):
         ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
         ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
-    #ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
-    ax[1, 0].plot(tspan, sol['replicator_solution'].T[0]*sol['I'][0], '--', label = 'replicator z1')
-    ax[1, 0].plot(tspan, sol['I1'][0], label = 'I1')
+    ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
+    ax[1, 0].plot(tspan, sol['replicator_solution'].T[0], '--', label = 'replicator z1')
+    #ax[1, 0].plot(tspan, sol['I1'][0], label = 'I1')
     #ax[1, 0].plot(tspan, sol['z2'][0], label = 'Strain 2')
     #ax[1, 0].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 0], label = 'replicator strain 1')
@@ -284,14 +284,9 @@ def plot(sol, tspan):
     ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
     ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
 
-    if sol['d'] == sol['epsilon']:
-        diff = 'slow diffusion'
-    elif sol['d'] == 1/sol['epsilon']:
-        diff = 'fast diffusion'
-    else:
-        diff = 'no diffusion'
+    
 
-    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ', $\epsilon$ =' + str(sol['epsilon']) + ' and ' + diff)
+    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ', $\epsilon$ =' + str(sol['epsilon']) + ' and d =' + str(sol['d']))
 
 
     return ax
