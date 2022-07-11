@@ -286,7 +286,7 @@ def plot(sol, tspan):
 
     
 
-    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ', $\epsilon$ =' + str(sol['epsilon']) + ' and d =' + str(sol['d']))
+    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ', $\epsilon$ =' + str(sol['epsilon']) + ' and d = ' + str(sol['d']))
 
 
     return ax
