@@ -208,6 +208,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
 
     repli, info = integrate.odeint(replicator, [z1[0][0], z1[1][0]], epsilon*tspan, args = (Theta, lambda1_2, lambda2_1, w, d), full_output=True)
     measures['replicator_solution'] = repli
+    
 
     
     measures['error'] = np.linalg.norm(TIstar[0]*repli.T[0] - I1[0]) + np.linalg.norm(TIstar[0]*(1 - repli.T[0]) - I2[1]) 
@@ -217,8 +218,11 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     for i in range(7):
         average_solution.append(avg([solution.T[2*i], solution.T[2*i+1]]))
     
+    average_replicator = avg([repli.T[0], repli.T[1]])
     measures['mean_solution'] = np.array(average_solution)
-    
+    measures['mean_replicator'] = np.array(average_replicator)
+    measures['mean_z1'] = np.array(avg([z1[0], z1[1]]))
+
 
     return measures
 
@@ -238,7 +242,7 @@ def plot(sol, tspan):
 
     ax[1, 0].set_ylim([0, 1])
     ax[1, 1].set_ylim([0, 1])
-
+    ax[1, 2].set_ylim([0, 1])
     
     for i in range(7):
         ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
@@ -258,6 +262,9 @@ def plot(sol, tspan):
     #ax[1, 1].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 2], label = 'replicator solution 1')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 3], label = 'replicator solution 2')
+    
+    ax[1, 2].plot(tspan, sol['mean_z1'], label = 'Strain 1')
+    ax[1, 2].plot(tspan, sol['mean_replicator'], '--', label = 'replicator z1')
     
     
 
@@ -279,6 +286,7 @@ def plot(sol, tspan):
     ax[2, 1].plot(tspan, sol['T'][1], label = 'T', color = 'purple')
     ax[2, 1].plot(tspan, [sol['TTstar'][1] for t in tspan],'--', label = '$T^*$', color = 'purple')
 
+    ax[2, 2].plot(tspan, sol['S'][1], label = 'S', color = 'blue')
 
 
     #Labeling everything
@@ -294,7 +302,7 @@ def plot(sol, tspan):
         ax[0, i].set(xlabel="t")
         ax[1, i].set(xlabel=r"$\tau$")
         ax[i, 2].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
-        ax[2, 1].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
+        ax[2, 2].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
 
     ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
     ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
