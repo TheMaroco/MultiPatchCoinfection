@@ -6,6 +6,12 @@ from animator import animate
 from animation import Animate
 
 
+def avg(lists):
+    avg = []
+    n = len(lists[0])
+    for i in range(n):
+        avg.append(np.mean([entry[i] for entry in lists]))
+    return avg
 
 def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d):
     """Function for the replicator equation using the summarized parameters."""
@@ -205,6 +211,13 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
 
     
     measures['error'] = np.linalg.norm(TIstar[0]*repli.T[0] - I1[0]) + np.linalg.norm(TIstar[0]*(1 - repli.T[0]) - I2[1]) 
+
+    average_solution = []
+    #print(avg([solution.T[0], solution.T[1]]))
+    for i in range(7):
+        average_solution.append(avg([solution.T[2*i], solution.T[2*i+1]]))
+    
+    measures['mean_solution'] = np.array(average_solution)
     
 
     return measures
@@ -214,13 +227,14 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
 def plot(sol, tspan):
     """Wrapper function to plot the solutions of the system, both in quantities and frequencies (Solutions of system and replicator, respectively)."""
     solution = sol['solution']
+    avg_solution = sol['mean_solution']
 
     labels = ['S', 'S', 'I1', 'I1','I2','I2', 'I11', 'I11', 'I12', 'I12', 'I21', 'I21', 'I22', 'I22']
     
 
 
     
-    fig, ax = plt.subplots(3, 2, figsize = (10, 10))
+    fig, ax = plt.subplots(3, 3, figsize = (10, 10))
 
     ax[1, 0].set_ylim([0, 1])
     ax[1, 1].set_ylim([0, 1])
@@ -229,6 +243,7 @@ def plot(sol, tspan):
     for i in range(7):
         ax[0, 0].plot(tspan, solution.T[2*i], label = labels[2*i])
         ax[0, 1].plot(tspan, solution.T[2*i + 1], label = labels[2*i+1])
+        ax[0, 2].plot(tspan, avg_solution[i], label = labels[2*i])
     ax[1, 0].plot(tspan, sol['z1'][0], label = 'Strain 1')
     ax[1, 0].plot(tspan, sol['replicator_solution'].T[0], '--', label = 'replicator z1')
     #ax[1, 0].plot(tspan, sol['I1'][0], label = 'I1')
@@ -278,11 +293,12 @@ def plot(sol, tspan):
     for i in range(2):
         ax[0, i].set(xlabel="t")
         ax[1, i].set(xlabel=r"$\tau$")
-        ax[i, 1].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
+        ax[i, 2].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
         ax[2, 1].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
 
     ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
     ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
+    ax[0, 2].set_title('Mean Dynamics', fontsize = 16)
 
     
 

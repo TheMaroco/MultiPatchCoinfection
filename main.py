@@ -5,7 +5,7 @@ from population import patch, metaPopulation
 
 t = np.linspace(0, 100, 100)
 initial_conditions1 = [0.4, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0]
-initial_conditions2 = [0.4, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0]
+initial_conditions2 = [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 neutral_r = 1
 neutral_beta = 6
 
@@ -20,7 +20,7 @@ patch1.define_beta(b)
 #alpha = [0.1, 0.4, 0.3, 0.1]
 #patch1.define_K(alpha)
 
-patch2 = patch('B', initial_conditions2, 1, neutralbeta = 6, neutralgamma = 2, neutralk = 0.5, epsilon = epsilon)
+patch2 = patch('B', initial_conditions2, 1, neutralbeta = 5, neutralgamma = 2, neutralk = 0.5, epsilon = epsilon)
 b = [0.1, 0.6]
 patch2.define_beta(b)
 #alpha = [0.1, 0.5, 0.5, 0.1]
@@ -41,7 +41,7 @@ print('w:', metapop.measures(t)['w'])
 
 print('error in the approximation:', metapop.measures(t)['error'])
 
-
+print(metapop.measures(t)['mean_solution'].shape)
 plot(metapop.measures(t), t)
 plt.show()
 
