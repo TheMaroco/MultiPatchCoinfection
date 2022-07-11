@@ -22,7 +22,7 @@ def replicator(z, t, Theta, lambda1_2, lambda2_1, w, d):
 
     return eqlist
 
-def neutralsystem(v, t, r, beta, gamma, K, p = [1, 0.5, 0.5, 1], q = [1, 0.5, 0.5, 1]):
+def neutralsystem(v, t, r, beta, gamma, K, p = 0.5, q = 0.5):
     """Function to return the system for the neutral model."""
     n = int(len(v)/7)  #There's always 7 infection classes: S, I1, I2, I11, I12, I21, I22
     S = v[0]
@@ -32,8 +32,8 @@ def neutralsystem(v, t, r, beta, gamma, K, p = [1, 0.5, 0.5, 1], q = [1, 0.5, 0.
     I12 = v[4]
     I21 = v[5]
     I22 = v[6]
-    J1 = I1 + q[0]*I11 + p[0]*I11 + q[1]*I12 + p[1]*I21
-    J2 = I2 + q[2]*I21 + p[2]*I12 + q[3]*I22 + p[3]*I22
+    J1 = I1 + 1*I11  + p*I12 + q*I21         
+    J2 = I2 + 1*I22 + (1-p)*I12 +(1-q)*I21
     eqS = r*(1 - S) + gamma*I1 + gamma*I2 + gamma*I11 + gamma*I12 + gamma*I21 + gamma*I22 - beta*S*J1 - beta*S*J2 
     eqI1 = beta*J1*S - (r + gamma)*I1 - beta*K*I1*J1 - beta*K*I1*J2 
     eqI2 = beta*J2*S - (r + gamma)*I2 - beta*K*I2*J1 - beta*K*I2*J2 
