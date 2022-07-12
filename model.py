@@ -222,6 +222,11 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['mean_solution'] = np.array(average_solution)
     measures['mean_replicator'] = np.array(average_replicator)
     measures['mean_z1'] = np.array(avg([z1[0], z1[1]]))
+    measures['mean_S'] = np.array(avg([solution.T[0], solution.T[1]]))
+    measures['mean_I'] = np.array(avg([I[0], I[1]]))
+    measures['mean_D'] = np.array(avg([D[0], D[1]]))
+    measures['mean_T'] = np.array(avg([T[0], T[1]]))
+    
 
 
     return measures
@@ -286,7 +291,14 @@ def plot(sol, tspan):
     ax[2, 1].plot(tspan, sol['T'][1], label = 'T', color = 'purple')
     ax[2, 1].plot(tspan, [sol['TTstar'][1] for t in tspan],'--', label = '$T^*$', color = 'purple')
 
-    ax[2, 2].plot(tspan, sol['S'][1], label = 'S', color = 'blue')
+    ax[2, 2].plot(tspan, sol['mean_S'], label = 'S', color = 'blue')
+    ax[2, 2].plot(tspan, [np.mean([sol['TSstar'][0], sol['TSstar'][1]]) for t in tspan],'--', label = '$S^*$', color = 'blue')
+    ax[2, 2].plot(tspan, sol['mean_I'], label = 'I', color = 'red')
+    ax[2, 2].plot(tspan, [np.mean([sol['TIstar'][0], sol['TIstar'][1]]) for t in tspan],'--', label = '$I^*$', color = 'red')
+    ax[2, 2].plot(tspan, sol['mean_D'], label = 'D', color = 'orange')
+    ax[2, 2].plot(tspan, [np.mean([sol['TDstar'][0], sol['TDstar'][1]]) for t in tspan],'--', label = '$D^*$', color = 'orange')
+    ax[2, 2].plot(tspan, sol['mean_T'], label = 'T', color = 'purple')
+    ax[2, 2].plot(tspan, [np.mean([sol['TTstar'][0], sol['TTstar'][1]]) for t in tspan],'--', label = '$T^*$', color = 'purple')
 
 
     #Labeling everything
@@ -294,15 +306,20 @@ def plot(sol, tspan):
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
     ax[0, 1].text(86, 0.5, 'R0 = ' + str(round(sol['R_0'][1], 3)), style='italic',
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
+    ax[0, 2].text(86, 0.455, '$\overline{R0}$ = ' + str(round(np.mean([sol['R_0'][0], sol['R_0'][1]]), 3)), style='italic',
+        bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')    
     ax[1, 0].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(round(sol['lambda1_2'][0], 3)) + '\n $\lambda_2^1$ =' + str(round(sol['lambda2_1'][0], 3)), style='italic',
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
     ax[1, 1].text(len(tspan)/2, 0.4, '$\lambda_1^2$ = ' + str(round(sol['lambda1_2'][1], 3)) + '\n $\lambda_2^1$ =' + str(round(sol['lambda2_1'][1], 3)), style='italic',
         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
+    ax[1, 2].text(len(tspan)/2, 0.4, '$\overline{\lambda_1^2}$ = ' + str(round(np.mean([sol['lambda1_2'][0], sol['lambda1_2'][1]]), 3)) + '\n $\overline{\lambda_2^1}$ =' + str(round(np.mean([sol['lambda2_1'][0], sol['lambda2_1'][1]]), 3)), style='italic',
+        bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10}, ha='center', va='center')
+
     for i in range(2):
         ax[0, i].set(xlabel="t")
         ax[1, i].set(xlabel=r"$\tau$")
-        ax[i, 2].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
-        ax[2, 2].legend(loc = 'center right', bbox_to_anchor=(1.25, 0.5))
+        ax[i, 2].legend(loc = 'center right', bbox_to_anchor=(1.42, 0.5))
+        ax[2, 2].legend(loc = 'center right', bbox_to_anchor=(1.42, 0.5))
 
     ax[0, 0].set_title('Patch 1 Dynamics', fontsize = 16)
     ax[0, 1].set_title('Patch 2 Dynamics', fontsize = 16)
@@ -310,7 +327,7 @@ def plot(sol, tspan):
 
     
 
-    fig.suptitle('Two patch dynamics with mean R0 =' + str(round(sum(sol['R_0'])/2, 3)) + ', $\epsilon$ =' + str(sol['epsilon']) + ' and d = ' + str(sol['d']))
+    fig.suptitle('Two patch dynamics with $\epsilon$ =' + str(sol['epsilon']) + ' and d = ' + str(round(sol['d'], 2)))
 
 
     return ax
