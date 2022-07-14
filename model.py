@@ -210,8 +210,10 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     measures['replicator_solution'] = repli
     
 
-    
-    measures['error'] = np.linalg.norm(TIstar[0]*repli.T[0] - I1[0]) + np.linalg.norm(TIstar[0]*(1 - repli.T[0]) - I2[1]) 
+    Serror = solution.T[0] - TSstar[0] + solution.T[1] - TSstar[1]
+    Ierror = (I1[0] - TIstar[0]*repli.T[0] + I2[0]) - TIstar[0]*(1-repli.T[0]) + (I1[1] - TIstar[1]*repli.T[1]) + (I2[1] - TIstar[1]*(1-repli.T[1]))
+    Derror = (TDstar[0]*repli.T[0]**2 - solution.T[6]) + (TDstar[1]*repli.T[1]**2 - solution.T[7]) + (TDstar[0]*repli.T[0]*(1 - repli.T[0]) - solution.T[8]) + (TDstar[1]*repli.T[1]*(1-repli.T[1]) - solution.T[9]) + (TDstar[0]*repli.T[0]*(1 - repli.T[0]) - solution.T[10]) + (TDstar[1]*repli.T[1]*(1-repli.T[1]) - solution.T[11]) + (TDstar[0]*(1 - repli.T[0])**2 - solution.T[12]) + (TDstar[1]*(1-repli.T[1])**2 - solution.T[13])
+    measures['error'] = np.linalg.norm(Serror + Ierror + Derror)
 
     average_solution = []
     #print(avg([solution.T[0], solution.T[1]]))
