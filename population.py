@@ -41,7 +41,8 @@ class patch:
     def define_beta(self, b = [0, 0]):
         """Function to generate the non-neutral betas. bi is the strain specific reproduction rates."""
         #To generalize this to more strains -> make bi be a higher dimensional vector, use a for (over i in range(len(bi))) and append with the formula nbeta*(1 + epsilon*bi[i])
-        self.b = np.array([self.nbeta*(1 + self.epsilon*b[0]), self.nbeta*(1 + self.epsilon*b[1])])
+        self.b = np.array([self.nbeta*(1 + self.epsilon*b[0]), self.nbeta*(1 + + self.epsilon*b[1])])
+        #self.b = np.array([self.nbeta + self.epsilon*b[0], self.nbeta + self.epsilon*b[1]])
         return self.b
     def define_sgamma(self, gammai = [0, 0]):
         """Function to generate the non-neutral single infectio gammas. gammai is the strain specific clearance rates."""
@@ -195,18 +196,6 @@ class metaPopulation:
 
 
 
-
-# patches = [patch1, patch2, patch3]
-# patches = []
-# M = np.identity(10)
-# for k in range(10):
-#     patches.append(patch(str(k), [0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], 1, 2, 2, 1, 0.1))
-# meta = metaPopulation(patches, M, 0)
-# print(meta.v0)
-# print(meta.solution(np.linspace(0, 100, 100)).shape)
-
-# plt.plot(np.linspace(0, 100, 100), meta.solution(np.linspace(0, 100, 100)))
-# plt.show()
 
 
 

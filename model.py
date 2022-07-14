@@ -213,7 +213,7 @@ def analysis(system, tspan, v0, r, neutralbeta, b, neutralgamma, sgamma, cgamma,
     Serror = solution.T[0] - TSstar[0] + solution.T[1] - TSstar[1]
     Ierror = (I1[0] - TIstar[0]*repli.T[0] + I2[0]) - TIstar[0]*(1-repli.T[0]) + (I1[1] - TIstar[1]*repli.T[1]) + (I2[1] - TIstar[1]*(1-repli.T[1]))
     Derror = (TDstar[0]*repli.T[0]**2 - solution.T[6]) + (TDstar[1]*repli.T[1]**2 - solution.T[7]) + (TDstar[0]*repli.T[0]*(1 - repli.T[0]) - solution.T[8]) + (TDstar[1]*repli.T[1]*(1-repli.T[1]) - solution.T[9]) + (TDstar[0]*repli.T[0]*(1 - repli.T[0]) - solution.T[10]) + (TDstar[1]*repli.T[1]*(1-repli.T[1]) - solution.T[11]) + (TDstar[0]*(1 - repli.T[0])**2 - solution.T[12]) + (TDstar[1]*(1-repli.T[1])**2 - solution.T[13])
-    measures['error'] = np.linalg.norm(Serror + Ierror + Derror)
+    measures['error'] = np.linalg.norm(Serror) + np.linalg.norm(Ierror) + np.linalg.norm(Derror)
 
     average_solution = []
     #print(avg([solution.T[0], solution.T[1]]))
@@ -264,7 +264,7 @@ def plot(sol, tspan):
     #ax[1, 0].plot(tspan, sol['replicator_solution'][:, 1], label = 'replicator strain 2')
 
     ax[1, 1].plot(tspan, sol['z1'][1], label = 'Strain 1')
-    ax[1, 1].plot(tspan, sol['replicator_solution'].T[1], '--', label = 'replicator z1')
+    ax[1, 1].plot(tspan, sol['replicator_solution'].T[1], '--', color = 'orange', label = 'replicator z1')
     #ax[1, 1].plot(tspan, sol['z2'][1], label = 'Strain 2')
     #ax[1, 1].plot(tspan, np.ones(tspan) - sol['replicator_solution'].T[1], '--', label = 'replicator z2')
     #ax[1, 1].plot(tspan, sol['replicator_solution'][:, 2], label = 'replicator solution 1')

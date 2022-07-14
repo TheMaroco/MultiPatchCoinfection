@@ -14,16 +14,14 @@ d = epsilon
 M = np.array([[-1, 1], [1, -1]])
 patch1 = patch('A', initial_conditions1, 1, neutralbeta = 6, neutralgamma = 2, neutralk = 0.5, epsilon = epsilon)
 b = [0.1, 0.4]
-patch1.define_beta(b) 
-#patch1.define_sgamma([5, 0.8])
-#patch1.define_cgamma([0.3,0.1,0.2,0.1])
-#alpha = [0.1, 0.4, 0.3, 0.1]
-#patch1.define_K(alpha)
+#patch1.define_beta(b) 
+alpha = [0.1, 0.4, 0.3, 0.1]
+patch1.define_K(alpha)
 
 patch2 = patch('B', initial_conditions2, 1, neutralbeta = 5, neutralgamma = 2, neutralk = 0.5, epsilon = epsilon)
 b = [0.1, 0.6]
 #patch2.define_beta(b)
-alpha = [0.1, 0.3, 0.5, 0.1]
+alpha = [0.1, 0.9, 0.2, 0.1]
 patch2.define_K(alpha)
 
 
@@ -52,9 +50,11 @@ errors = []
 epsilons = np.linspace(0.001, 0.3, 10)
 for e in epsilons:
     patch1 = patch('A', [0.4, 0.3, 0.1, 0.0, 0.0, 0.1, 0.1], 1, 6, 2, 1, e)
-    patch1.define_beta(b)
+    #patch1.define_beta(b)
+    patch1.define_K(alpha)
     patch2 = patch('B', [0.4, 0.3, 0.1, 0.0, 0.0, 0.1, 0.1], 1, 5, 2, 0.1, e)
-    patch2.define_beta(b)
+    #patch2.define_beta(b)
+    patch2.define_K(alpha)
     patches = [patch1, patch2]
     metapop = metaPopulation(patches, d, M)
     measures = metapop.measures(t)
@@ -62,8 +62,11 @@ for e in epsilons:
     errors.append(measures['error'])
 
 
-plt.plot(epsilons, errors)
+plt.plot(epsilons, errors, label = 'Computed error ')
+plt.plot(epsilons, np.sqrt(epsilons), label = '$\sqrt{\epsilon}$')
 
+
+plt.legend()
 plt.show()
 
 
